@@ -31,6 +31,7 @@
             display: block;
             width: 100%;
             height: 100%;
+            image-rendering: pixelated; /* Keeps pixel art crisp */
         }
 
         .overlay {
@@ -211,6 +212,10 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// --- ASSET LOADING ---
+const zallyImg = new Image();
+zallyImg.src = 'zally_chef.png';
+
 // Game State
 let gameState = 'START'; // START, PLAYING, GAMEOVER, LEVEL_COMPLETE
 let score = 0;
@@ -244,7 +249,6 @@ class Player {
         this.vx = 0;
         this.vy = 0;
         this.isClimbing = false;
-        this.spriteColor = '#FF6900'; // Zally Orange
         this.facingRight = true;
     }
 
@@ -280,7 +284,6 @@ class Player {
 
         if (keys.ArrowUp && onLadder) {
             this.vy = -this.speed;
-            // Snap to ladder center visually
             if(Math.abs(this.x - ladderCenter) < 10) this.x = ladderCenter; 
         }
         if (keys.ArrowDown && onLadder) {
@@ -300,59 +303,39 @@ class Player {
     }
 
     draw() {
-        ctx.fillStyle = this.spriteColor;
+        ctx.save();
         
-        // --- ZALLY PLACEHOLDER DRAWING ---
-        // If using an image: ctx.drawImage(zallyImg, this.x, this.y, 30, 30);
+        // Pivot point at center of player (hitbox 30x30)
+        ctx.translate(this.x + this.width/2, this.y + this.height/2);
         
-        // Body
-        ctx.beginPath();
-        ctx.arc(this.x + 15, this.y + 15, 14, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Chef Hat
-        ctx.fillStyle = 'white';
-        ctx.fillRect(this.x + 5, this.y - 12, 20, 15);
-        
-        // Eyes
-        ctx.fillStyle = 'black';
-        if (this.facingRight) {
-            ctx.fillRect(this.x + 18, this.y + 10, 4, 4);
-            ctx.fillRect(this.x + 24, this.y + 10, 4, 4);
-        } else {
-            ctx.fillRect(this.x + 2, this.y + 10, 4, 4);
-            ctx.fillRect(this.x + 8, this.y + 10, 4, 4);
+        if (!this.facingRight) {
+            ctx.scale(-1, 1);
         }
 
-        // LEFT HAND: Lightbulb (Always ON)
-        // Position changes based on direction
-        let leftHandX = this.facingRight ? this.x - 5 : this.x + 35;
-        
-        ctx.fillStyle = '#FFD700'; // Bulb Yellow
-        ctx.beginPath();
-        ctx.arc(leftHandX, this.y + 20, 6, 0, Math.PI * 2);
-        ctx.fill();
-        // Glow
-        ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
-        ctx.lineWidth = 3;
-        ctx.stroke();
+        // --- SPRITE DRAWING ---
+        if (zallyImg.complete && zallyImg.naturalWidth !== 0) {
+            // Draw Sprite (48x48 to cover hitbox with nice detail)
+            // Offset by -24 to center it on the 0,0 pivot
+            ctx.drawImage(zallyImg, -24, -24, 48, 48);
+        } else {
+            // Fallback (Orange Circle) if image missing
+            ctx.fillStyle = '#FF6900';
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Fallback Hat
+            ctx.fillStyle = 'white';
+            ctx.fillRect(-10, -25, 20, 15);
 
-        // RIGHT HAND: Paintbrush
-        let rightHandX = this.facingRight ? this.x + 35 : this.x - 5;
-        
-        // Brush Handle
-        ctx.strokeStyle = '#8B4513'; // Wood
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(this.facingRight ? this.x + 25 : this.x + 5, this.y + 20);
-        ctx.lineTo(rightHandX, this.y + 10);
-        ctx.stroke();
+            // Fallback Brush (Simplified)
+            ctx.fillStyle = '#00FFFF';
+            ctx.beginPath();
+            ctx.arc(20, 0, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
-        // Brush Tip (Paint color)
-        ctx.fillStyle = '#00FFFF'; // Cyan paint
-        ctx.beginPath();
-        ctx.arc(rightHandX, this.y + 10, 4, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.restore();
     }
 }
 
