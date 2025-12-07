@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zally's Prompt Builder - Gemini Arcade</title>
+    <title>Gemini Image Creation Lab</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Press+Start+2P&display=swap');
         
         body {
-            background-color: #202020;
-            font-family: 'Press Start 2P', cursive;
+            background-color: #1a1a1a;
+            font-family: 'Roboto Mono', monospace; /* More technical/educational font */
             color: white;
             overflow: hidden;
-            touch-action: none; /* Prevent scrolling on mobile */
+            touch-action: none;
         }
         
         #game-container {
@@ -23,15 +23,15 @@
             margin: 0 auto;
             aspect-ratio: 3/4;
             background-color: #000;
-            border: 4px solid #FF6900; /* Zalando Orange */
-            box-shadow: 0 0 20px rgba(255, 105, 0, 0.5);
+            border: 4px solid #FF6900;
+            box-shadow: 0 0 20px rgba(255, 105, 0, 0.3);
         }
 
         canvas {
             display: block;
             width: 100%;
             height: 100%;
-            image-rendering: pixelated; /* Keeps pixel art crisp */
+            image-rendering: pixelated;
         }
 
         .overlay {
@@ -44,35 +44,41 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 10;
+            padding: 20px;
+            text-align: center;
         }
 
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
 
         .btn {
             background: #FF6900;
-            border: 4px solid #FFFFFF;
+            border: 2px solid #FFFFFF;
             color: white;
-            padding: 15px 20px;
+            padding: 12px 24px;
             font-family: 'Press Start 2P', cursive;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             margin: 10px;
             text-transform: uppercase;
-            transition: transform 0.1s;
+            transition: all 0.2s;
         }
-
         .btn:hover {
-            transform: scale(1.05);
+            transform: translateY(-2px);
             background: #ff8c42;
+            box-shadow: 0 4px 0 #b34a00;
         }
 
-        .btn-green {
-            background: #4caf50;
-            border-color: #a5d6a7;
+        .educational-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #FF6900;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            max-width: 400px;
+            font-size: 14px;
+            line-height: 1.4;
         }
 
         .hud {
@@ -83,19 +89,9 @@
             display: flex;
             justify-content: space-between;
             pointer-events: none;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
             text-shadow: 2px 2px 0 #000;
-        }
-
-        /* Scanline effect */
-        .scanlines {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-            background-size: 100% 4px;
-            pointer-events: none;
             z-index: 5;
         }
         
@@ -108,12 +104,7 @@
             padding: 0 20px;
             z-index: 20;
         }
-        
-        @media (max-width: 768px) {
-            .mobile-controls {
-                display: flex;
-            }
-        }
+        @media (max-width: 768px) { .mobile-controls { display: flex; } }
         
         .d-pad {
             display: grid;
@@ -121,7 +112,6 @@
             grid-template-rows: 50px 50px;
             gap: 5px;
         }
-        
         .ctrl-btn {
             width: 50px;
             height: 50px;
@@ -133,60 +123,74 @@
             align-items: center;
             user-select: none;
         }
-        
-        .ctrl-btn:active {
-            background: rgba(255, 105, 0, 0.6);
-        }
+        .ctrl-btn:active { background: rgba(255, 105, 0, 0.6); }
 
     </style>
 </head>
 <body>
 
     <div class="text-center mt-4 mb-2">
-        <h1 class="text-2xl text-orange-500">GEMINI ARCADE: PROMPT BUILDER</h1>
-        <p class="text-xs text-gray-400">Stack the Prompt Layers to create the Image!</p>
+        <h1 class="text-xl md:text-2xl font-bold text-orange-500 tracking-wider">GEMINI IMAGE CREATION LAB</h1>
+        <p class="text-xs text-gray-400 font-mono">LEARNING MODULE 1: THE 4 PILLARS OF PROMPTING</p>
     </div>
 
     <div id="game-container">
         <canvas id="gameCanvas" width="600" height="800"></canvas>
-        <div class="scanlines"></div>
-
+        
         <!-- HUD -->
         <div class="hud" id="hud">
-            <div>SCORE: <span id="score">0</span></div>
-            <div>PAINT: <span id="ammo">3</span></div>
+            <div>PROMPT SCORE: <span id="score">0</span></div>
+            <div>CREATIVITY: <span id="ammo">3</span></div>
         </div>
 
         <!-- Start Screen -->
         <div id="start-screen" class="overlay">
-            <h1 class="text-4xl text-yellow-400 mb-8 text-center" style="line-height: 1.5;">PROMPT<br>BUILDER</h1>
-            <p class="mb-8 text-center text-sm max-w-md">Help Zally stack the prompt ingredients!<br>Use your Paintbrush to stun enemies!</p>
+            <h1 class="text-3xl text-orange-500 mb-2 font-bold font-mono">VISUAL PROMPTING<br>SIMULATOR</h1>
             
-            <div class="mb-4 text-center">
-                <p class="text-xs mb-2 text-gray-300">SELECT YOUR STYLE:</p>
-                <button class="btn" onclick="startGame('classic')">🥩 CLASSIC</button>
-                <button class="btn btn-green" onclick="startGame('veggie')">🥑 VEGGIE</button>
+            <div class="educational-box text-left">
+                <p class="text-yellow-400 mb-2 font-bold">THE MISSION:</p>
+                <p class="text-gray-300 text-xs mb-2">To generate a perfect image with Gemini, you must stack the 4 essential layers of a prompt:</p>
+                <ul class="text-xs text-white list-disc pl-4 space-y-1">
+                    <li><strong class="text-blue-300">SUBJECT:</strong> What is the main object?</li>
+                    <li><strong class="text-green-300">CONTEXT:</strong> Where is it located?</li>
+                    <li><strong class="text-yellow-300">LIGHTING:</strong> How is it lit?</li>
+                    <li><strong class="text-red-300">STYLE:</strong> What is the artistic look?</li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <p class="text-xs mb-2 text-gray-400">SELECT OUTPUT MODE:</p>
+                <button class="btn" onclick="startGame('classic')">PHOTOREALISTIC</button>
+                <button class="btn btn-green" onclick="startGame('veggie')">ILLUSTRATION</button>
             </div>
             
-            <p class="mt-8 text-xs text-gray-500">Arrow Keys to Move • SPACE to Splash Paint</p>
+            <p class="mt-4 text-xs text-gray-500">Arrow Keys to Move • SPACE to use "Detail Brush"</p>
         </div>
 
         <!-- Game Over Screen -->
         <div id="game-over-screen" class="overlay hidden">
-            <h1 class="text-red-500 text-3xl mb-4">GAME OVER</h1>
-            <p class="mb-4">FINAL SCORE: <span id="final-score">0</span></p>
-            <p class="mb-8 text-xs text-center" id="generated-prompt">Your prompt was too vague!</p>
-            <button class="btn" onclick="location.reload()">TRY AGAIN</button>
+            <h1 class="text-red-500 text-2xl mb-4 font-mono">PROMPT FAILED</h1>
+            <div class="educational-box">
+                <p class="text-sm">Your prompt was too vague!</p>
+                <p class="text-xs text-gray-400 mt-2">Gemini Tip: "Avoid simple descriptions. Instead of 'a shoe', try 'a leather sneaker in a studio setting'."</p>
+            </div>
+            <p class="mb-4 text-xs">FINAL SCORE: <span id="final-score">0</span></p>
+            <button class="btn" onclick="location.reload()">RETRY MODULE</button>
         </div>
         
         <!-- Level Complete Screen -->
         <div id="level-complete-screen" class="overlay hidden">
-            <h1 class="text-green-400 text-2xl mb-4">IMAGE GENERATED!</h1>
-            <div id="image-placeholder" class="w-32 h-32 bg-white mb-4 border-4 border-white flex items-center justify-center text-black text-xs text-center p-2">
-                [AI IMAGE APPEARS HERE]
+            <h1 class="text-green-400 text-2xl mb-4 font-mono">IMAGE GENERATED!</h1>
+            
+            <div class="educational-box">
+                <p class="text-xs text-gray-400 mb-2">You successfully structured the prompt:</p>
+                <p class="text-sm italic text-white" id="success-msg">Loading...</p>
+                <div id="image-placeholder" class="mt-4 w-full h-32 bg-gray-800 border-2 border-white flex items-center justify-center text-gray-500 text-xs">
+                    [AI GENERATED VISUAL WOULD APPEAR HERE]
+                </div>
             </div>
-            <p class="text-xs mb-4 text-center max-w-xs" id="success-msg">Excellent prompting!</p>
-            <button class="btn" onclick="nextLevel()">NEXT LEVEL</button>
+            
+            <button class="btn" onclick="nextLevel()">GENERATE NEXT</button>
         </div>
     </div>
 
@@ -205,37 +209,29 @@
 
 <script>
 /**
- * ZALLY'S PROMPT BUILDER
- * A clone of Burger Time adapted for Gemini Prompt Engineering
+ * GEMINI IMAGE CREATION LAB
+ * Enablement Tool: Teaches prompt structure through gamification.
  */
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// --- ASSET LOADING ---
+// --- ASSETS ---
 const zallyImg = new Image();
 zallyImg.src = 'zally_chef.png';
 
-// Game State
-let gameState = 'START'; // START, PLAYING, GAMEOVER, LEVEL_COMPLETE
+// --- STATE ---
+let gameState = 'START'; 
 let score = 0;
-let ammo = 3; // "Paint" charges
-let dietaryPref = 'classic';
+let ammo = 3; 
+let mode = 'classic'; // 'classic' = Photorealistic, 'veggie' = Illustration
 let level = 1;
 
 // Dimensions
 const TILE_SIZE = 40;
-const COLS = 15;
-const ROWS = 20;
 
 // Input
-const keys = {
-    ArrowUp: false,
-    ArrowDown: false,
-    ArrowLeft: false,
-    ArrowRight: false,
-    Space: false
-};
+const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, Space: false };
 
 // --- CLASSES ---
 
@@ -243,8 +239,7 @@ class Player {
     constructor() {
         this.width = 30;
         this.height = 30;
-        // FIX START POSITION: Start on the bottom floor (Floor 4) instead of the void
-        // Floor 4 visual line is at 615. Player Y should be 615 - 30 = 585.
+        // Start on bottom floor (Floor 4 ~ 615px line)
         this.x = 300;
         this.y = 585; 
         this.speed = 3;
@@ -254,21 +249,18 @@ class Player {
         this.facingRight = true;
     }
 
-    update(ladders, platforms) {
-        // Reset velocity
+    update(ladders) {
         this.vx = 0;
         this.vy = 0;
 
-        // --- LADDER DETECTION LOGIC ---
+        // Ladder Logic
         let onLadder = false;
         let ladderCenter = 0;
         
         for (let ladder of ladders) {
-            // Check if player is horizontally aligned with ladder (plus some tolerance)
-            // And vertically within the ladder's range (including top access)
             if (this.x + this.width/2 > ladder.x && 
                 this.x + this.width/2 < ladder.x + ladder.width &&
-                this.y + this.height >= ladder.y - 5 && // Allow entering from top
+                this.y + this.height >= ladder.y - 5 && 
                 this.y < ladder.y + ladder.height) {
                 onLadder = true;
                 ladderCenter = ladder.x + (ladder.width/2) - (this.width/2);
@@ -276,19 +268,12 @@ class Player {
         }
         this.isClimbing = onLadder;
 
-        // --- MOVEMENT INPUT ---
-        if (keys.ArrowLeft) {
-            this.vx = -this.speed;
-            this.facingRight = false;
-        }
-        if (keys.ArrowRight) {
-            this.vx = this.speed;
-            this.facingRight = true;
-        }
+        // Movement
+        if (keys.ArrowLeft) { this.vx = -this.speed; this.facingRight = false; }
+        if (keys.ArrowRight) { this.vx = this.speed; this.facingRight = true; }
 
         if (keys.ArrowUp && onLadder) {
             this.vy = -this.speed;
-            // Snap to ladder center visually when climbing
             if(Math.abs(this.x - ladderCenter) < 10) this.x = ladderCenter; 
         }
         if (keys.ArrowDown && onLadder) {
@@ -296,33 +281,26 @@ class Player {
              if(Math.abs(this.x - ladderCenter) < 10) this.x = ladderCenter;
         }
 
-        // --- GRAVITY & FLOOR SNAPPING ---
-        // If not climbing, we need gravity to prevent "floating" bugs
+        // Gravity / Floor Snap
         if (!onLadder) {
             let onGround = false;
-            // Define floor Y levels (Visual line Y - Player Height 30)
-            // Floors at visual lines: 165, 315, 465, 615
+            // Floor Y levels visual: 165, 315, 465, 615. Player stands at Y-30.
             const groundLevels = [135, 285, 435, 585]; 
             
             for (let gy of groundLevels) {
-                // If we are close to a floor, snap to it
                 if (Math.abs(this.y - gy) < 10) {
                     this.y = gy;
                     onGround = true;
                     break;
                 }
             }
-
-            if (!onGround) {
-                this.vy += 5; // Apply Gravity
-            }
+            if (!onGround) this.vy += 5; // Gravity
         }
 
-        // Apply movement
         this.x += this.vx;
         this.y += this.vy;
 
-        // Screen Boundaries
+        // Boundaries
         if (this.x < 0) this.x = 0;
         if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
         if (this.y < 0) this.y = 0;
@@ -331,56 +309,37 @@ class Player {
 
     draw() {
         ctx.save();
-        
-        // Pivot point at center of player (hitbox 30x30)
         ctx.translate(this.x + this.width/2, this.y + this.height/2);
-        
-        if (!this.facingRight) {
-            ctx.scale(-1, 1);
-        }
+        if (!this.facingRight) ctx.scale(-1, 1);
 
-        // --- SPRITE DRAWING ---
         if (zallyImg.complete && zallyImg.naturalWidth !== 0) {
-            // Draw Sprite (48x48 to cover hitbox with nice detail)
-            // Offset by -24 to center it on the 0,0 pivot
             ctx.drawImage(zallyImg, -24, -24, 48, 48);
         } else {
-            // Fallback (Orange Circle) if image missing
+            // Fallback: Artist Zally
             ctx.fillStyle = '#FF6900';
-            ctx.beginPath();
-            ctx.arc(0, 0, 15, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Fallback Hat
-            ctx.fillStyle = 'white';
-            ctx.fillRect(-10, -25, 20, 15);
-
-            // Fallback Brush (Simplified)
-            ctx.fillStyle = '#00FFFF';
-            ctx.beginPath();
-            ctx.arc(20, 0, 5, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = 'white'; ctx.fillRect(-10, -25, 20, 15); // Hat
+            ctx.fillStyle = '#00FFFF'; ctx.beginPath(); ctx.arc(20, 0, 5, 0, Math.PI * 2); ctx.fill(); // Brush
         }
-
         ctx.restore();
     }
 }
 
-class Ingredient {
+class PromptLayer {
     constructor(x, y, width, type, id) {
         this.x = x;
         this.y = y;
         this.originalY = y;
         this.width = width;
         this.height = 15;
-        this.type = type; // 'bun-top', 'meat', 'garnish', 'bun-bot'
+        this.type = type; 
         this.id = id;
-        this.segments = [0, 0, 0, 0]; // 0: untouched, 1: pressed
+        this.segments = [0, 0, 0, 0];
         this.segmentWidth = width / 4;
         this.isFalling = false;
         this.fallSpeed = 0;
         this.targetY = y;
-        this.isStacked = false; // Reached bottom
+        this.isStacked = false;
     }
 
     update(player) {
@@ -388,16 +347,12 @@ class Ingredient {
 
         if (this.isFalling) {
             this.y += this.fallSpeed;
-            this.fallSpeed += 0.5; // Gravity
-
-            // Stop falling logic (Simplified)
+            this.fallSpeed += 0.5;
             if (this.y >= this.targetY) {
                 this.y = this.targetY;
                 this.isFalling = false;
                 this.fallSpeed = 0;
-                this.segments = [0, 0, 0, 0]; // Reset segments for next drop
-                
-                // Check if stacked at bottom
+                this.segments = [0, 0, 0, 0];
                 if (this.y > canvas.height - 100) {
                     this.isStacked = true;
                     checkLevelCompletion();
@@ -406,30 +361,22 @@ class Ingredient {
             return;
         }
 
-        // Check if player walks over a segment
+        // Stepping logic
         if (player.y + player.height >= this.y - 5 && 
             player.y + player.height <= this.y + 10) {
-            
-            // Determine which segment player is on
             let relX = (player.x + player.width/2) - this.x;
             if (relX > 0 && relX < this.width) {
                 let segIndex = Math.floor(relX / this.segmentWidth);
-                if (segIndex >= 0 && segIndex < 4) {
-                    this.segments[segIndex] = 1;
-                }
+                if (segIndex >= 0 && segIndex < 4) this.segments[segIndex] = 1;
             }
         }
 
-        // Check if all segments pressed
-        if (this.segments.every(s => s === 1)) {
-            this.drop();
-        }
+        if (this.segments.every(s => s === 1)) this.drop();
     }
 
     drop() {
         this.isFalling = true;
         this.fallSpeed = 2;
-        // Drop down one "floor" (approx 150px)
         this.targetY = this.y + 150; 
         score += 50;
         triggerChainReaction(this);
@@ -439,29 +386,28 @@ class Ingredient {
         // Draw Segments
         for (let i = 0; i < 4; i++) {
             let segX = this.x + (i * this.segmentWidth);
-            let offset = this.segments[i] ? 5 : 0; // Pressed segments are lower visually
+            let offset = this.segments[i] ? 5 : 0;
             
-            // Color based on type and Dietary Pref
-            if (this.type === 'bun-top' || this.type === 'bun-bot') {
-                ctx.fillStyle = '#F4A460'; // Bread color
-            } else if (this.type === 'garnish') {
-                ctx.fillStyle = '#90EE90'; // Lettuce/Light
-            } else if (this.type === 'meat') {
-                ctx.fillStyle = dietaryPref === 'veggie' ? '#6B8E23' : '#8B4513'; // Green vs Brown
-            }
+            // Educational Coloring & Labeling
+            let color, label;
+            
+            // Top Layer = STYLE
+            if (this.type === 'bun-top') { color = '#EF4444'; label = "STYLE"; } // Red
+            // Middle Layer 1 = LIGHTING
+            else if (this.type === 'garnish') { color = '#EAB308'; label = "LIGHT"; } // Yellow
+            // Middle Layer 2 = SUBJECT
+            else if (this.type === 'meat') { color = mode === 'veggie' ? '#10B981' : '#3B82F6'; label = "SUBJECT"; } // Blue/Green
+            // Bottom Layer = CONTEXT
+            else if (this.type === 'bun-bot') { color = '#F97316'; label = "CONTEXT"; } // Orange
 
-            ctx.fillRect(segX, this.y + offset, this.segmentWidth, this.height);
+            ctx.fillStyle = color;
+            ctx.fillRect(segX, this.y + offset, this.segmentWidth - 2, this.height);
             
-            // Label
+            // Draw Label text on the 2nd segment
             if (i === 1) {
                 ctx.fillStyle = 'white';
-                ctx.font = '8px Arial';
-                let label = "";
-                if (this.type === 'bun-top') label = "STYLE";
-                if (this.type === 'garnish') label = "LIGHT";
-                if (this.type === 'meat') label = "SUBJECT";
-                if (this.type === 'bun-bot') label = "CONTEXT";
-                ctx.fillText(label, segX, this.y + offset + 10);
+                ctx.font = '10px "Roboto Mono"'; // More readable font
+                ctx.fillText(label, segX - 10, this.y + offset + 11);
             }
         }
     }
@@ -471,7 +417,7 @@ class Enemy {
     constructor(x, y, type) {
         this.x = x;
         this.y = y;
-        this.type = type; // 'blur' or 'noise'
+        this.type = type; 
         this.speed = 1;
         this.width = 30;
         this.height = 30;
@@ -485,8 +431,6 @@ class Enemy {
             if (this.stunTimer <= 0) this.stunned = false;
             return;
         }
-
-        // Simple pursuit logic
         if (this.x < player.x) this.x += this.speed * 0.5;
         else this.x -= this.speed * 0.5;
         
@@ -495,7 +439,6 @@ class Enemy {
             else this.y -= this.speed * 0.5;
         }
 
-        // Collision with player
         if (this.x < player.x + player.width &&
             this.x + this.width > player.x &&
             this.y < player.y + player.height &&
@@ -507,11 +450,10 @@ class Enemy {
     draw() {
         ctx.save();
         if (this.type === 'blur') {
-            ctx.fillStyle = 'rgba(200, 200, 200, 0.8)';
+            ctx.fillStyle = 'rgba(150, 150, 150, 0.8)';
             ctx.filter = this.stunned ? 'none' : 'blur(4px)';
         } else {
-            ctx.fillStyle = '#ff00ff';
-            // Noise effect
+            ctx.fillStyle = '#ff00ff'; // Noise
             if (Math.random() > 0.5) ctx.fillStyle = '#00ffff';
         }
         
@@ -519,40 +461,39 @@ class Enemy {
 
         ctx.fillRect(this.x, this.y, this.width, this.height);
         
-        // Face
-        ctx.fillStyle = 'black';
+        // Label the enemy
+        ctx.fillStyle = 'white';
+        ctx.font = '8px monospace';
         ctx.filter = 'none';
-        ctx.fillText(this.stunned ? "🎨" : "> <", this.x + 5, this.y + 20);
+        ctx.fillText(this.type === 'blur' ? "VAGUE" : "NOISE", this.x, this.y - 5);
         ctx.restore();
     }
 }
 
 // --- GAME OBJECTS ---
 let player;
-let ingredients = [];
+let layers = [];
 let ladders = [];
 let enemies = [];
 
-// --- INITIALIZATION ---
+// --- INIT ---
 
 function initGame() {
     player = new Player();
-    ingredients = [];
+    layers = [];
     ladders = [];
     enemies = [];
     score = 0;
     
-    // Create Map Layout
-    // 3 Columns of ingredients
     const colX = [100, 250, 400];
     const floorY = [150, 300, 450, 600];
 
-    // Ingredients
+    // Create Layers (Renamed from Ingredients)
     for(let c=0; c<3; c++) {
-        ingredients.push(new Ingredient(colX[c], floorY[0], 120, 'bun-top', `t-${c}`));
-        ingredients.push(new Ingredient(colX[c], floorY[1], 120, 'garnish', `g-${c}`));
-        ingredients.push(new Ingredient(colX[c], floorY[2], 120, 'meat', `m-${c}`));
-        ingredients.push(new Ingredient(colX[c], floorY[3], 120, 'bun-bot', `b-${c}`));
+        layers.push(new PromptLayer(colX[c], floorY[0], 120, 'bun-top', `t-${c}`)); // Style
+        layers.push(new PromptLayer(colX[c], floorY[1], 120, 'garnish', `g-${c}`)); // Lighting
+        layers.push(new PromptLayer(colX[c], floorY[2], 120, 'meat', `m-${c}`));    // Subject
+        layers.push(new PromptLayer(colX[c], floorY[3], 120, 'bun-bot', `b-${c}`)); // Context
     }
 
     // Ladders
@@ -562,68 +503,54 @@ function initGame() {
     ladders.push({x: 350, y: 450, width: 30, height: 150}); 
     ladders.push({x: 50, y: 600, width: 30, height: 150}); 
 
-    // Enemies
-    enemies.push(new Enemy(50, 150, 'blur'));
-    enemies.push(new Enemy(500, 300, 'noise'));
+    enemies.push(new Enemy(50, 150, 'blur')); // "Vagueness"
+    enemies.push(new Enemy(500, 300, 'noise')); // "Distraction"
 
     document.getElementById('hud').classList.remove('hidden');
 }
 
-// --- GAME LOOP ---
+// --- LOOP ---
 
 function gameLoop() {
     if (gameState !== 'PLAYING') return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw Map (Floors/Ladders)
-    ctx.fillStyle = '#00bcd4';
-    for (let l of ladders) {
-        for(let y=l.y; y<l.y+l.height; y+=20) {
-            ctx.fillRect(l.x, y, l.width, 4);
-        }
-        ctx.strokeStyle = '#00bcd4';
-        ctx.strokeRect(l.x, l.y, l.width, l.height);
-    }
-    
-    // Draw Floor Lines
-    ctx.strokeStyle = '#555';
+    // Draw Floors
+    ctx.strokeStyle = '#333';
     ctx.beginPath();
     [165, 315, 465, 615].forEach(y => {
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+        ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
     });
     ctx.stroke();
 
-    // Update & Draw Objects
-    ingredients.forEach(ing => {
-        ing.update(player);
-        ing.draw();
-    });
+    // Draw Ladders
+    ctx.fillStyle = '#444';
+    for (let l of ladders) {
+        for(let y=l.y; y<l.y+l.height; y+=20) ctx.fillRect(l.x, y, l.width, 4);
+        ctx.strokeStyle = '#444'; ctx.strokeRect(l.x, l.y, l.width, l.height);
+    }
 
-    player.update(ladders, []);
+    // Objects
+    layers.forEach(l => { l.update(player); l.draw(); });
+    player.update(ladders);
     player.draw();
+    enemies.forEach(e => { e.update(player); e.draw(); });
 
-    enemies.forEach(en => {
-        en.update(player);
-        en.draw();
-    });
-
-    // Update UI
     document.getElementById('score').innerText = score;
     document.getElementById('ammo').innerText = ammo;
 
     requestAnimationFrame(gameLoop);
 }
 
-// --- LOGIC HELPERS ---
+// --- LOGIC ---
 
-function triggerChainReaction(fallingIng) {
-    ingredients.forEach(target => {
-        if (target === fallingIng) return;
-        if (Math.abs(target.x - fallingIng.x) < 10 && 
-            target.y > fallingIng.y && 
-            target.y < fallingIng.targetY + 20 && 
+function triggerChainReaction(fallingLayer) {
+    layers.forEach(target => {
+        if (target === fallingLayer) return;
+        if (Math.abs(target.x - fallingLayer.x) < 10 && 
+            target.y > fallingLayer.y && 
+            target.y < fallingLayer.targetY + 20 && 
             !target.isFalling && !target.isStacked
         ) {
             target.drop();
@@ -632,16 +559,14 @@ function triggerChainReaction(fallingIng) {
 }
 
 function checkLevelCompletion() {
-    const stacked = ingredients.filter(i => i.isStacked).length;
-    if (stacked >= ingredients.length) {
-        levelComplete();
-    }
+    const stacked = layers.filter(i => i.isStacked).length;
+    if (stacked >= layers.length) levelComplete();
 }
 
-// --- CONTROLS ---
+// --- CONTROLS / UI ---
 
-function startGame(mode) {
-    dietaryPref = mode;
+function startGame(selectedMode) {
+    mode = selectedMode;
     gameState = 'PLAYING';
     document.getElementById('start-screen').classList.add('hidden');
     document.getElementById('game-over-screen').classList.add('hidden');
@@ -653,36 +578,28 @@ function startGame(mode) {
 function gameOver() {
     gameState = 'GAMEOVER';
     document.getElementById('final-score').innerText = score;
-    document.getElementById('generated-prompt').innerText = 
-        dietaryPref === 'classic' 
-        ? "You created a 'Blurry Meatloaf in the fog'. Try again!" 
-        : "You created a 'Confused Salad storm'. Try again!";
     document.getElementById('game-over-screen').classList.remove('hidden');
 }
 
 function levelComplete() {
     gameState = 'LEVEL_COMPLETE';
-    let msg = dietaryPref === 'classic' 
-        ? "Perfect Prompt! Generated: 'A futuristic chef creating a masterpiece burger.'"
-        : "Perfect Prompt! Generated: 'A futuristic chef creating a vibrant veggie stack.'";
     
-    document.getElementById('success-msg').innerText = msg;
+    // Enablement Content: The "Win" message is actually a prompt template
+    let promptResult = mode === 'classic' 
+        ? '"A high-end sneaker (Subject) on a wet city street (Context) with neon blue lighting (Light), photorealistic 8k style (Style)."'
+        : '"A cute mascot (Subject) in a fantasy kitchen (Context) with soft warm lighting (Light), in 3D illustration style (Style)."';
+    
+    document.getElementById('success-msg').innerText = promptResult;
     document.getElementById('level-complete-screen').classList.remove('hidden');
 }
 
-function nextLevel() {
-    startGame(dietaryPref);
-}
+function nextLevel() { startGame(mode); }
 
-// Key Handlers
 window.addEventListener('keydown', (e) => {
     if(e.code in keys) keys[e.code] = true;
     if(e.code === 'Space' && gameState === 'PLAYING') useBrush();
 });
-
-window.addEventListener('keyup', (e) => {
-    if(e.code in keys) keys[e.code] = false;
-});
+window.addEventListener('keyup', (e) => { if(e.code in keys) keys[e.code] = false; });
 
 function simulateKey(code, state) {
     keys[code] = state;
@@ -693,24 +610,13 @@ function useBrush() {
     if (ammo > 0) {
         ammo--;
         score += 100;
-        // Stun enemies
-        enemies.forEach(e => {
-            e.stunned = true;
-            e.stunTimer = 200; // frames
-        });
+        enemies.forEach(e => { e.stunned = true; e.stunTimer = 200; });
         
-        // Visual PAINT SPLASH
+        // Effect
         const flash = document.createElement('div');
-        flash.style.position = 'absolute';
-        flash.style.top = '0';
-        flash.style.left = '0';
-        flash.style.width = '100%';
-        flash.style.height = '100%';
-        flash.style.background = 'radial-gradient(circle, rgba(0,255,255,0.6) 0%, rgba(255,0,255,0.6) 50%, rgba(255,255,0,0) 100%)';
-        flash.style.opacity = '0.8';
-        flash.style.pointerEvents = 'none';
+        flash.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.2);pointer-events:none;';
         document.getElementById('game-container').appendChild(flash);
-        setTimeout(() => flash.remove(), 200);
+        setTimeout(() => flash.remove(), 100);
     }
 }
 
