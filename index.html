@@ -52,7 +52,7 @@
             justify-content: center;
             align-items: center;
             background: rgba(0, 0, 0, 0.9);
-            z-index: 10;
+            z-index: 50; /* Z-index boosted to ensure visibility */
             padding: 20px;
             text-align: center;
         }
@@ -65,11 +65,12 @@
             color: white;
             padding: 10px 20px;
             font-family: 'Press Start 2P', cursive;
-            font-size: 12px; /* Slightly smaller for better fit */
+            font-size: 12px;
             cursor: pointer;
             margin: 8px;
             text-transform: uppercase;
             transition: all 0.2s;
+            user-select: none;
         }
         .btn:hover {
             transform: translateY(-2px);
@@ -98,10 +99,9 @@
             font-family: 'Press Start 2P', cursive;
             font-size: 10px;
             text-shadow: 2px 2px 0 #000;
-            z-index: 5;
+            z-index: 20;
         }
         
-        /* Mobile controls overlay (only visible on touch) */
         .mobile-controls {
             display: none;
             position: fixed;
@@ -109,7 +109,7 @@
             width: 100%;
             justify-content: space-between;
             padding: 0 20px;
-            z-index: 20;
+            z-index: 100;
         }
         @media (max-width: 768px) { .mobile-controls { display: flex; } }
         
@@ -130,7 +130,6 @@
             align-items: center;
             user-select: none;
         }
-
     </style>
 </head>
 <body>
@@ -146,6 +145,7 @@
         <!-- HUD -->
         <div class="hud" id="hud">
             <div>SCORE: <span id="score">0</span></div>
+            <div>LEVEL: <span id="level-display">1</span></div>
             <div>BRUSHES: <span id="ammo">3</span></div>
         </div>
 
@@ -178,9 +178,10 @@
             <h1 class="text-red-500 text-xl mb-4 font-mono">PROMPT FAILED</h1>
             <div class="educational-box">
                 <p class="text-sm">Your prompt was too vague!</p>
-                <p class="text-xs text-gray-400 mt-2">"Avoid generic terms. Be specific about lighting and style."</p>
+                <p class="text-xs text-gray-400 mt-2">"Avoid generic terms. Be specific about lighting and style. Don't let the 'Blur' catch you!"</p>
             </div>
-            <button class="btn" onclick="location.reload()">RETRY</button>
+            <p class="text-xs mb-4">FINAL SCORE: <span id="final-score">0</span></p>
+            <button class="btn" onclick="restartGame()">RETRY LEVEL</button>
         </div>
         
         <!-- Level Complete Screen -->
@@ -214,8 +215,11 @@
 
 <script>
 /**
- * GEMINI IMAGE CREATION LAB
- * Fixed Version: Responsive Layout + Improved Hitboxes
+ * GEMINI IMAGE CREATION LAB v1.2
+ * Changelog:
+ * - Fixed "Retry" button freezing (replaced location.reload with soft reset)
+ * - Added Level Progression (Enemies get faster)
+ * - Fixed Responsive Height for Laptops
  */
 
 const canvas = document.getElementById('gameCanvas');
@@ -231,10 +235,10 @@ let score = 0;
 let ammo = 3; 
 let mode = 'classic';
 let level = 1;
+let animationFrameId; // To track and cancel loop
 
-// Dimensions & Physics Constants
+// Dimensions & Physics
 const FLOOR_HEIGHT = 150;
-// Visual Y positions of the "floors" (lines)
 const FLOOR_Y = [165, 315, 465, 615]; 
 
 // Input
@@ -246,10 +250,8 @@ class Player {
     constructor() {
         this.width = 30;
         this.height = 30;
-        // Start perfectly on the bottom floor
-        // Floor line is at 615. Player feet at 615. Top left = 615 - 30 = 585.
         this.x = 300;
-        this.y = 585; 
+        this.y = 585; // Start on bottom floor
         this.speed = 3;
         this.vx = 0;
         this.vy = 0;
@@ -261,20 +263,14 @@ class Player {
         this.vx = 0;
         this.vy = 0;
 
-        // --- LADDER LOGIC (FIXED) ---
+        // Ladder Logic
         let onLadder = false;
         let ladderCenter = 0;
-        
-        // Player "Feet" Y position
         let feetY = this.y + this.height;
-        // Player Center X
         let centerX = this.x + this.width / 2;
 
         for (let ladder of ladders) {
-            // Horizontal check with tolerance
             if (centerX > ladder.x - 5 && centerX < ladder.x + ladder.width + 5) {
-                // Vertical check: Are we within the ladder's vertical span?
-                // Allow grabbing slightly above (top floor) and slightly below (bottom floor)
                 if (feetY >= ladder.y - 5 && feetY <= ladder.y + ladder.height + 5) {
                     onLadder = true;
                     ladderCenter = ladder.x + (ladder.width/2) - (this.width/2);
@@ -283,36 +279,30 @@ class Player {
         }
         this.isClimbing = onLadder;
 
-        // --- MOVEMENT ---
+        // Movement
         if (keys.ArrowLeft) { this.vx = -this.speed; this.facingRight = false; }
         if (keys.ArrowRight) { this.vx = this.speed; this.facingRight = true; }
 
         if (keys.ArrowUp && onLadder) {
             this.vy = -this.speed;
-            if(Math.abs(this.x - ladderCenter) < 15) this.x = ladderCenter; // Snap X
+            if(Math.abs(this.x - ladderCenter) < 15) this.x = ladderCenter;
         }
         if (keys.ArrowDown && onLadder) {
             this.vy = this.speed;
-             if(Math.abs(this.x - ladderCenter) < 15) this.x = ladderCenter; // Snap X
+             if(Math.abs(this.x - ladderCenter) < 15) this.x = ladderCenter;
         }
 
-        // --- GRAVITY & FLOOR SNAP (FIXED) ---
+        // Gravity / Floor Snap
         if (!onLadder) {
             let onGround = false;
-            
-            // Check against all floors
             for (let fy of FLOOR_Y) {
-                // If feet are close to a floor line
                 if (Math.abs(feetY - fy) < 10) {
-                    this.y = fy - this.height; // Snap exactly to floor
+                    this.y = fy - this.height;
                     onGround = true;
                     break;
                 }
             }
-
-            if (!onGround) {
-                this.vy += 5; // Gravity
-            }
+            if (!onGround) this.vy += 5;
         }
 
         this.x += this.vx;
@@ -346,7 +336,7 @@ class Player {
 class PromptLayer {
     constructor(x, y, width, type, id) {
         this.x = x;
-        this.y = y; // This is the TOP of the ingredient
+        this.y = y; 
         this.originalY = y;
         this.width = width;
         this.height = 15;
@@ -366,7 +356,6 @@ class PromptLayer {
         if (this.isFalling) {
             this.y += this.fallSpeed;
             this.fallSpeed += 0.5;
-            // Stop logic
             if (this.y >= this.targetY) {
                 this.y = this.targetY;
                 this.isFalling = false;
@@ -380,21 +369,11 @@ class PromptLayer {
             return;
         }
 
-        // --- STEPPING LOGIC (FIXED) ---
-        // Player feet (player.y + player.height) vs Ingredient Y
-        // Ingredient sits ON the line? No, ingredients are slightly above line in setup?
-        // Let's check init: Floor 1 line is 165. Ingredient created at 150.
-        // So ingredient spans 150 to 165.
-        // Player standing on Floor 1 is at Y=135. Feet at 165.
-        
-        // We want detection when player feet are roughly at the ingredient's bottom (165)
-        // Relaxed hitbox:
+        // Stepping Logic
         let pFeet = player.y + player.height;
-        let ingBottom = this.y + this.height; // 150 + 15 = 165
+        let ingBottom = this.y + this.height; 
         
-        // Check vertical overlap (Player is standing on it)
         if (pFeet >= this.y && pFeet <= ingBottom + 5) {
-            // Check horizontal overlap
             let relX = (player.x + player.width/2) - this.x;
             if (relX > 0 && relX < this.width) {
                 let segIndex = Math.floor(relX / this.segmentWidth);
@@ -408,7 +387,7 @@ class PromptLayer {
     drop() {
         this.isFalling = true;
         this.fallSpeed = 2;
-        this.targetY = this.y + FLOOR_HEIGHT; // Drop one floor exactly
+        this.targetY = this.y + FLOOR_HEIGHT; 
         score += 50;
         triggerChainReaction(this);
     }
@@ -441,7 +420,8 @@ class Enemy {
         this.x = x;
         this.y = y;
         this.type = type; 
-        this.speed = 1.2; // Slightly faster
+        // Level Progression: Enemies get 20% faster each level
+        this.speed = 1.0 + (level * 0.2); 
         this.width = 30;
         this.height = 30;
         this.stunned = false;
@@ -509,17 +489,12 @@ function initGame() {
     layers = [];
     ladders = [];
     enemies = [];
-    score = 0;
+    // Don't reset score if leveling up, only on restart
     
     const colX = [100, 250, 400];
-    
-    // Y POSITIONS
-    // Floor lines: 165, 315, 465, 615
-    // Ingredients sit ON TOP of lines (Height 15). 
-    // So ingredient Y = FloorY - 15.
     const ingY = [165-15, 315-15, 465-15, 615-15];
 
-    // Create Layers
+    // Layers
     for(let c=0; c<3; c++) {
         layers.push(new PromptLayer(colX[c], ingY[0], 120, 'bun-top', `t-${c}`)); 
         layers.push(new PromptLayer(colX[c], ingY[1], 120, 'garnish', `g-${c}`)); 
@@ -527,21 +502,24 @@ function initGame() {
         layers.push(new PromptLayer(colX[c], ingY[3], 120, 'bun-bot', `b-${c}`)); 
     }
 
-    // Ladders connecting floors
-    // Ladder Top = Floor Line - Height(150).
-    // Floor 1 (165) -> Floor 2 (315): Ladder Y = 165. H = 150.
+    // Ladders
     ladders.push({x: 50, y: 165, width: 30, height: 150}); 
     ladders.push({x: 520, y: 165, width: 30, height: 150});
     ladders.push({x: 200, y: 315, width: 30, height: 150}); 
     ladders.push({x: 350, y: 465, width: 30, height: 150}); 
-    // Extra ladder at bottom to start? No, player starts at 615.
-    // Maybe a ladder to go UP from 615 to 465? No, previous one (350, 465) connects 465->615.
-    // You climb it from bottom (615) to top (465).
 
+    // Enemies (Quantity and Speed scale with Level?)
+    // For now just speed scales in the Class.
     enemies.push(new Enemy(50, 165-30, 'blur')); 
     enemies.push(new Enemy(500, 315-30, 'noise')); 
+    // Add extra enemy on Level 2+
+    if (level > 1) {
+        enemies.push(new Enemy(300, 465-30, 'blur'));
+    }
 
     document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('level-display').innerText = level;
+    document.getElementById('ammo').innerText = ammo;
 }
 
 // --- LOOP ---
@@ -567,7 +545,6 @@ function gameLoop() {
         ctx.strokeStyle = '#444'; ctx.strokeRect(l.x, l.y, l.width, l.height);
     }
 
-    // Update
     layers.forEach(l => { l.update(player); l.draw(); });
     player.update(ladders);
     player.draw();
@@ -576,7 +553,7 @@ function gameLoop() {
     document.getElementById('score').innerText = score;
     document.getElementById('ammo').innerText = ammo;
 
-    requestAnimationFrame(gameLoop);
+    animationFrameId = requestAnimationFrame(gameLoop);
 }
 
 // --- LOGIC ---
@@ -584,7 +561,6 @@ function gameLoop() {
 function triggerChainReaction(fallingLayer) {
     layers.forEach(target => {
         if (target === fallingLayer) return;
-        // Hitbox check for falling layer vs target layer
         if (Math.abs(target.x - fallingLayer.x) < 10 && 
             target.y > fallingLayer.y && 
             target.y < fallingLayer.targetY + 10 && 
@@ -603,6 +579,8 @@ function checkLevelCompletion() {
 // --- CONTROLS / UI ---
 
 function startGame(selectedMode) {
+    // Standard Start
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
     mode = selectedMode;
     gameState = 'PLAYING';
     document.getElementById('start-screen').classList.add('hidden');
@@ -612,10 +590,34 @@ function startGame(selectedMode) {
     gameLoop();
 }
 
+function restartGame() {
+    // Soft Reset (Called by Retry Button)
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    score = 0;
+    level = 1;
+    ammo = 3;
+    gameState = 'PLAYING';
+    document.getElementById('game-over-screen').classList.add('hidden');
+    initGame();
+    gameLoop();
+}
+
+function nextLevel() {
+    // Called when winning a level
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    level++;
+    ammo += 1; // Reward
+    gameState = 'PLAYING';
+    document.getElementById('level-complete-screen').classList.add('hidden');
+    initGame(); // Will use new level var to increase difficulty
+    gameLoop();
+}
+
 function gameOver() {
     gameState = 'GAMEOVER';
     document.getElementById('final-score').innerText = score;
     document.getElementById('game-over-screen').classList.remove('hidden');
+    // Loop stops automatically because check at start of gameLoop
 }
 
 function levelComplete() {
@@ -626,8 +628,6 @@ function levelComplete() {
     document.getElementById('success-msg').innerText = promptResult;
     document.getElementById('level-complete-screen').classList.remove('hidden');
 }
-
-function nextLevel() { startGame(mode); }
 
 window.addEventListener('keydown', (e) => {
     if(e.code in keys) keys[e.code] = true;
