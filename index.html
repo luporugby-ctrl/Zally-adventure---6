@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gemini Visual Lab: Nano Banana Pro</title>
+    <title>Gemini Visual Lab: S.L.I.C.E. Method</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Press+Start+2P&display=swap');
@@ -52,7 +52,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(0, 0, 0, 0.94);
+            background: rgba(0, 0, 0, 0.96);
             z-index: 50;
             padding: 20px;
             text-align: center;
@@ -86,7 +86,7 @@
             text-align: left;
             max-width: 90%;
             font-size: 12px;
-            line-height: 1.5;
+            line-height: 1.6;
             max-height: 60vh;
             overflow-y: auto;
         }
@@ -138,8 +138,8 @@
 <body>
 
     <div class="text-center mb-1">
-        <h1 class="text-xl font-bold text-orange-500 tracking-widest font-mono">NANO BANANA PRO</h1>
-        <p class="text-[10px] text-gray-400">STUDIO QUALITY VISUALS</p>
+        <h1 class="text-xl font-bold text-orange-500 tracking-widest font-mono">GEMINI VISUAL LAB</h1>
+        <p class="text-[10px] text-gray-400">MASTER THE S.L.I.C.E. METHOD</p>
     </div>
 
     <div id="game-wrapper">
@@ -147,44 +147,45 @@
         
         <!-- HUD -->
         <div class="hud">
-            <div id="level-display" class="text-yellow-400">DEMO 1</div>
-            <div>CREATIVITY: <span class="text-cyan-400">∞</span></div>
+            <div id="level-display" class="text-yellow-400">TRAINING</div>
+            <div>STATUS: <span id="status-text" class="text-cyan-400">ACTIVE</span></div>
         </div>
 
         <!-- START SCREEN -->
         <div id="start-screen" class="overlay">
-            <h1 class="text-2xl text-orange-500 mb-4 font-bold font-mono">GEMINI VISUAL LAB</h1>
+            <h1 class="text-2xl text-orange-500 mb-4 font-bold font-mono">PROMPT ACADEMY</h1>
             
             <div class="info-box">
-                <h3 class="text-white font-bold mb-2">TURN YOUR VISIONS INTO STUDIO QUALITY DESIGNS</h3>
-                <p class="text-gray-300 mb-4">Welcome to the Nano Banana Pro simulation. You will experience 3 key capabilities:</p>
-                <ul class="space-y-3 list-disc pl-4 text-gray-300">
-                    <li><strong class="text-white">Unprecedented Creative Control:</strong> Refine specific parts, adjust lighting, and switch aspect ratios.</li>
-                    <li><strong class="text-white">Improved Text Rendering:</strong> Generate legible text, logos, and fonts directly on objects.</li>
-                    <li><strong class="text-white">Enhanced World Knowledge:</strong> Create culturally accurate content connected to Google Search.</li>
+                <h3 class="text-white font-bold mb-2">LEARN TO PROMPT LIKE A PRO</h3>
+                <p class="text-gray-300 mb-4">Nano Banana Pro gives you studio-quality control. To master it, remember the <strong>S.L.I.C.E.</strong> acronym:</p>
+                <ul class="space-y-2 pl-2 text-gray-300 text-xs">
+                    <li><strong class="text-blue-400">S</strong>UBJECT (The Hero)</li>
+                    <li><strong class="text-green-400">L</strong>OCATION (The Context)</li>
+                    <li><strong class="text-yellow-400">I</strong>LLUMINATION (Lighting)</li>
+                    <li><strong class="text-purple-400">C</strong>AMERA (Style/Angle)</li>
+                    <li><strong class="text-red-400">E</strong>XTRAS (Details)</li>
                 </ul>
             </div>
             
-            <button class="btn" onclick="startGame()">START DEMO</button>
-            <p class="text-[10px] text-gray-500 mt-4">Arrows to Move • Just TOUCH blocks to collect them</p>
+            <button class="btn" onclick="startGame()">START COURSE</button>
         </div>
 
         <!-- LEVEL INTRO -->
         <div id="level-intro" class="overlay hidden">
             <h1 class="text-xl text-yellow-400 mb-4 font-mono" id="intro-title">MODULE 1</h1>
             <div class="info-box" id="intro-text"></div>
-            <button class="btn" onclick="startLevel()">BUILD PROMPT</button>
+            <button class="btn" onclick="startLevel()">START</button>
         </div>
 
         <!-- VICTORY -->
         <div id="victory-screen" class="overlay hidden">
-            <h1 class="text-green-400 text-xl mb-4 font-mono">RESULT GENERATED</h1>
+            <h1 class="text-green-400 text-xl mb-4 font-mono">GENERATION COMPLETE</h1>
             <div class="info-box">
-                <p class="text-gray-400 text-[10px] mb-2 uppercase tracking-wide">Prompt Used:</p>
+                <p class="text-gray-400 text-[10px] mb-2 uppercase tracking-wide">Output Prompt:</p>
                 <p class="text-white italic text-xs bg-gray-800 p-3 border-l-2 border-orange-500 mb-4" id="final-prompt">...</p>
                 <p class="text-[10px] text-orange-400 font-bold" id="feature-highlight"></p>
             </div>
-            <button class="btn" onclick="nextLevelAction()">NEXT DEMO</button>
+            <button class="btn" onclick="nextLevelAction()">NEXT MODULE</button>
         </div>
 
         <!-- MOBILE CONTROLS -->
@@ -203,7 +204,7 @@
 
 <script>
 /**
- * GEMINI VISUAL LAB v4.0 - Nano Banana Pro Edition
+ * GEMINI VISUAL LAB v6.1 - Customized Name Edition
  */
 
 const canvas = document.getElementById('gameCanvas');
@@ -237,7 +238,6 @@ const player = {
         this.vx = 0;
         this.vy = 0;
         
-        // 1. LADDER CHECK 
         let nearLadder = false;
         let ladderX = 0;
         const activeLadders = [
@@ -259,7 +259,6 @@ const player = {
             }
         }
         
-        // 2. MOVEMENT
         if (keys.ArrowLeft) { this.vx = -this.speed; this.facingRight = false; }
         if (keys.ArrowRight) { this.vx = this.speed; this.facingRight = true; }
         
@@ -280,7 +279,6 @@ const player = {
             this.onLadder = false;
         }
 
-        // 3. GRAVITY 
         if (!this.onLadder) {
             let onGround = false;
             for (let fy of FLOORS) {
@@ -327,34 +325,43 @@ function createLevel(lvl) {
     enemies = [];
     player.x = 300; player.y = 570; 
     
-    // Updated Levels based on Workshop Data
-
+    // LEVEL 1: S.L.I.C.E. METHOD (The Basics)
     if (lvl === 1) {
-        // CASE 1: INFOGRAPHIC (Style & Diorama)
-        document.getElementById('level-display').innerText = "DEMO 1: STYLIZATION";
-        layers.push({x: 50, y: 600-15, w: 120, type: 'INFOGRAPHIC', color: '#3B82F6', collected: false});
-        layers.push({x: 200, y: 300-15, w: 120, type: 'ARCHITECTURAL', color: '#10B981', collected: false});
-        layers.push({x: 450, y: 150-15, w: 120, type: 'DIORAMAS', color: '#F59E0B', collected: false});
-        // No enemies for first level
+        document.getElementById('level-display').innerText = "LESSON 1: S.L.I.C.E.";
+        layers.push({x: 50, y: 600-15, w: 100, type: 'SUBJECT', color: '#3B82F6', collected: false, letter:'S'});
+        layers.push({x: 450, y: 450-15, w: 100, type: 'LOCATION', color: '#10B981', collected: false, letter:'L'});
+        layers.push({x: 200, y: 300-15, w: 120, type: 'ILLUMINATION', color: '#FBBF24', collected: false, letter:'I'});
+        layers.push({x: 50, y: 150-15, w: 100, type: 'CAMERA', color: '#8B5CF6', collected: false, letter:'C'});
+        layers.push({x: 450, y: 150-15, w: 100, type: 'EXTRAS', color: '#EF4444', collected: false, letter:'E'});
     } 
+    // LEVEL 2: CREATIVE CONTROL (Architecture Infographic)
     else if (lvl === 2) {
-        // CASE 2: BOTTLE LABEL (Text Rendering)
-        document.getElementById('level-display').innerText = "DEMO 2: TEXT RENDERING";
-        layers.push({x: 50, y: 450-15, w: 120, type: 'BOTTLE WRAP', color: '#8B5CF6', collected: false});
-        layers.push({x: 450, y: 600-15, w: 120, type: 'MINIMAL LABEL', color: '#EC4899', collected: false});
-        layers.push({x: 250, y: 150-15, w: 150, type: '"BEA\'S HOT SAUCE"', color: '#EF4444', collected: false});
+        document.getElementById('level-display').innerText = "LESSON 2: CREATIVE CTRL";
+        layers.push({x: 50, y: 450-15, w: 130, type: 'INFOGRAPHIC', color: '#8B5CF6', collected: false});
+        layers.push({x: 450, y: 600-15, w: 120, type: 'DIORAMAS', color: '#EC4899', collected: false});
+        layers.push({x: 250, y: 150-15, w: 150, type: 'ILLUSTRATION', color: '#EF4444', collected: false});
         
-        enemies.push({x: 50, y: 300-20, type: 'BAD FONT', speed: 1.5, stunned: 0});
+        enemies.push({x: 50, y: 300-20, type: 'GENERIC', speed: 1.5, stunned: 0});
     }
-    else {
-        // CASE 3: MEXICAN FOOD (World Knowledge)
-        document.getElementById('level-display').innerText = "DEMO 3: WORLD KNOWLEDGE";
-        layers.push({x: 100, y: 150-15, w: 120, type: 'FLAT LAY', color: '#F59E0B', collected: false});
-        layers.push({x: 400, y: 300-15, w: 120, type: '8 DISHES', color: '#10B981', collected: false});
-        layers.push({x: 50, y: 450-15, w: 120, type: 'ANNOTATIONS', color: '#3B82F6', collected: false});
-        layers.push({x: 450, y: 600-15, w: 120, type: 'SPANISH', color: '#EF4444', collected: false});
+    // LEVEL 3: TEXT RENDERING (Custom Name Label)
+    else if (lvl === 3) {
+        document.getElementById('level-display').innerText = "LESSON 3: TEXT";
+        layers.push({x: 100, y: 150-15, w: 120, type: 'BOTTLE', color: '#F59E0B', collected: false});
+        layers.push({x: 400, y: 300-15, w: 120, type: 'WRAP LBL', color: '#10B981', collected: false});
+        // Changed to custom name placeholder
+        layers.push({x: 50, y: 450-15, w: 130, type: '[YOUR NAME]', color: '#EF4444', collected: false});
 
-        enemies.push({x: 300, y: 450-20, type: 'HALLUCINATION', speed: 2, stunned: 0});
+        enemies.push({x: 300, y: 450-20, type: 'TYPO', speed: 2, stunned: 0});
+    }
+    // LEVEL 4: WORLD KNOWLEDGE (Mexican Food)
+    else if (lvl === 4) {
+        document.getElementById('level-display').innerText = "LESSON 4: KNOWLEDGE";
+        layers.push({x: 50, y: 600-15, w: 100, type: 'FLAT LAY', color: '#3B82F6', collected: false});
+        layers.push({x: 450, y: 450-15, w: 120, type: '8 DISHES', color: '#10B981', collected: false});
+        layers.push({x: 200, y: 300-15, w: 130, type: 'ANNOTATIONS', color: '#FBBF24', collected: false});
+        layers.push({x: 50, y: 150-15, w: 120, type: 'SPANISH', color: '#8B5CF6', collected: false});
+        
+        enemies.push({x: 500, y: 150-20, type: 'ERROR', speed: 2.2, stunned: 0});
     }
 }
 
@@ -368,7 +375,6 @@ function update() {
         if (l.collected) continue;
         allCollected = false;
 
-        // Collision
         if (player.x < l.x + l.w &&
             player.x + player.w > l.x &&
             player.y < l.y + 15 &&
@@ -432,6 +438,12 @@ function draw() {
         ctx.fillStyle = '#fff';
         ctx.font = '10px monospace';
         ctx.fillText(l.type, l.x + 5, l.y - 5);
+        
+        if(l.letter) {
+             ctx.fillStyle = 'rgba(255,255,255,0.2)';
+             ctx.font = '20px monospace';
+             ctx.fillText(l.letter, l.x + l.w - 20, l.y - 5);
+        }
     }
     
     // Enemies
@@ -453,7 +465,17 @@ function draw() {
     ctx.fillRect(0, 750, 600, 50);
     ctx.fillStyle = '#fff';
     ctx.font = '10px "Roboto Mono"';
-    ctx.fillText("COLLECTED: " + layers.filter(l=>l.collected).map(l=>l.type).join(" + "), 10, 780);
+    
+    if (level === 1) {
+        let txt = "S.L.I.C.E: ";
+        const letters = ['S', 'L', 'I', 'C', 'E'];
+        let collectedLetters = layers.filter(l=>l.collected).map(l=>l.letter);
+        
+        txt += letters.map(char => collectedLetters.includes(char) ? char : "_").join(" ");
+        ctx.fillText(txt, 10, 780);
+    } else {
+        ctx.fillText("COLLECTED: " + layers.filter(l=>l.collected).map(l=>l.type).join(" + "), 10, 780);
+    }
 }
 
 function loop() {
@@ -478,27 +500,40 @@ function showIntro() {
     const text = document.getElementById('intro-text');
     
     if (level === 1) {
-        title.innerText = "DEMO 1: EDITORIAL STYLE";
+        title.innerText = "LESSON 1: THE BASICS";
         text.innerHTML = `
-            <p class="highlight mb-2">GOAL: ARCHITECTURAL INFOGRAPHIC</p>
-            <p class="text-gray-300">Create a sleek, modern infographic about modern architecture styles.</p>
-            <p class="text-white mt-4"><strong>New Feature:</strong> Illustration Style & Small Dioramas.</p>
-            <p class="text-xs text-gray-400 mt-2">COLLECT: 'INFOGRAPHIC' + 'DIORAMAS' + 'ARCHITECTURAL'</p>
+            <p class="highlight mb-2">METHOD: S.L.I.C.E.</p>
+            <p class="text-gray-300">Collect the 5 key ingredients for any prompt:</p>
+            <ul class="text-xs text-white list-none mt-2 space-y-1">
+               <li>[S]ubject</li>
+               <li>[L]ocation</li>
+               <li>[I]llumination</li>
+               <li>[C]amera</li>
+               <li>[E]xtras</li>
+            </ul>
         `;
     } else if (level === 2) {
-        title.innerText = "DEMO 2: TEXT RENDERING";
+        title.innerText = "LESSON 2: CREATIVE CONTROL";
+        text.innerHTML = `
+            <p class="highlight mb-2">GOAL: ARCHITECTURAL INFOGRAPHIC</p>
+            <p class="text-gray-300">Nano Banana Pro allows precise style control.</p>
+            <p class="text-white mt-4"><strong>Task:</strong> Create a sleek, modern infographic.</p>
+            <p class="text-xs text-gray-400 mt-2">COLLECT: 'INFOGRAPHIC' + 'DIORAMAS' + 'ILLUSTRATION'</p>
+        `;
+    } else if (level === 3) {
+        title.innerText = "LESSON 3: TEXT RENDERING";
         text.innerHTML = `
             <p class="highlight mb-2">GOAL: HOT SAUCE LABEL</p>
-            <p class="text-gray-300">Create a minimal label wrapped around a bottle with specific text.</p>
-            <p class="text-white mt-4"><strong>New Feature:</strong> "Bea's Hot Sauce" text rendering directly on the image.</p>
-            <p class="text-xs text-gray-400 mt-2">COLLECT: 'BOTTLE' + 'LABEL' + 'LOGO TEXT'</p>
+            <p class="text-gray-300">Generate legible, specific text on objects.</p>
+            <p class="text-white mt-4"><strong>Task:</strong> Create a bottle mockup with "[Your Name]'s Sauce".</p>
+            <p class="text-xs text-gray-400 mt-2">COLLECT: 'BOTTLE' + 'WRAP LBL' + '[YOUR NAME]'</p>
         `;
-    } else {
-        title.innerText = "DEMO 3: WORLD KNOWLEDGE";
+    } else if (level === 4) {
+        title.innerText = "LESSON 4: WORLD KNOWLEDGE";
         text.innerHTML = `
-            <p class="highlight mb-2">GOAL: CULTURAL DISHES</p>
-            <p class="text-gray-300">Create a table with 8 traditional Mexican dishes, annotated in Spanish.</p>
-            <p class="text-white mt-4"><strong>New Feature:</strong> Connecting to Google Search for cultural accuracy.</p>
+            <p class="highlight mb-2">GOAL: MEXICAN FEAST</p>
+            <p class="text-gray-300">Connect to Google Search for cultural accuracy.</p>
+            <p class="text-white mt-4"><strong>Task:</strong> 8 Traditional Dishes annotated in Spanish.</p>
             <p class="text-xs text-gray-400 mt-2">COLLECT: 'DISHES' + 'ANNOTATIONS' + 'SPANISH'</p>
         `;
     }
@@ -519,15 +554,19 @@ function showVictory() {
     const featBox = document.getElementById('feature-highlight');
     
     if (level === 1) {
-        promptBox.innerText = "\"Make a sleek, modern, editorial infographic about the architectural styles of modern architecture, with small architectural dioramas representing each style under it. Make it illustration style.\"";
-        featBox.innerText = "✓ Style Consistency ✓ Diorama Generation";
+        promptBox.innerText = "\"A futuristic chef (S) in a neon kitchen (L) with soft rim lighting (I), wide angle shot 8k (C), holding a glowing whisk (E).\"";
+        featBox.innerText = "✓ S.L.I.C.E. Method Verified";
     }
     else if (level === 2) {
-        promptBox.innerText = "\"Create a minimal, elegant label and wrap it around the bottle. Add the logo 'Bea's Hot Sauce' to the label, do not add any extra text. Keep the entire bottle fully in frame.\"";
+        promptBox.innerText = "\"Make a sleek, modern, editorial infographic about architecture, with small dioramas representing each style. Illustration style.\"";
+        featBox.innerText = "✓ Style Control ✓ Diorama Generation";
+    }
+    else if (level === 3) {
+        promptBox.innerText = "\"Create a minimal label wrapped around a bottle. Add the logo '[Your Name]'s Sauce' to the label, do not add any extra text.\"";
         featBox.innerText = "✓ Text Rendering ✓ Object Wrapping";
     }
     else {
-        promptBox.innerText = "\"Create a single table with 8 traditional mexican dishes, with the focal point right above it. Annotate the image with the name of each dish in spanish. Maintain all the details.\"";
+        promptBox.innerText = "\"Create a table with 8 traditional mexican dishes. Annotate the image with the name of each dish in spanish.\"";
         featBox.innerText = "✓ World Knowledge ✓ Multilingual Text";
     }
     
@@ -537,7 +576,7 @@ function showVictory() {
 function nextLevelAction() {
     document.getElementById('victory-screen').classList.add('hidden');
     level++;
-    if (level > 3) level = 1; 
+    if (level > 4) level = 1; 
     showIntro();
 }
 
@@ -545,7 +584,6 @@ function nextLevelAction() {
 function lerp(start, end, amt) { return (1-amt)*start + amt*end; }
 function simKey(k, s) { keys[k] = s; if(s && k==='Space') { for(let e of enemies) e.stunned = 120; } }
 
-// Event Listeners
 window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.code)) keys[e.code] = true; });
 window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.code)) keys[e.code] = false; });
 
