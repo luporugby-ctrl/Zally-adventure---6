@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Image Creation Lab</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gemini Visual Lab: Nano Banana Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Press+Start+2P&display=swap');
         
         body {
-            background-color: #1a1a1a;
+            background-color: #121212;
             font-family: 'Roboto Mono', monospace;
             color: white;
             height: 100vh;
             width: 100vw;
-            overflow: hidden; /* Prevent scrolling entirely */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,25 +22,26 @@
             touch-action: none;
         }
         
-        /* RESPONSIVE CONTAINER FIX */
-        #game-container {
+        #game-wrapper {
             position: relative;
-            /* Fit to height of screen, maintain aspect ratio */
-            height: 85vh; 
+            height: 90vh; 
             aspect-ratio: 3/4;
             max-width: 100%;
-            background-color: #000;
-            border: 4px solid #FF6900;
-            box-shadow: 0 0 20px rgba(255, 105, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(255, 105, 0, 0.2);
+            border: 2px solid #333;
+            background: #000;
         }
 
         canvas {
             display: block;
-            width: 100%;
             height: 100%;
+            width: auto;
             image-rendering: pixelated;
         }
 
+        /* UI OVERLAYS */
         .overlay {
             position: absolute;
             top: 0;
@@ -51,8 +52,8 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 50; /* Z-index boosted to ensure visibility */
+            background: rgba(0, 0, 0, 0.94);
+            z-index: 50;
             padding: 20px;
             text-align: center;
         }
@@ -60,34 +61,39 @@
         .hidden { display: none !important; }
 
         .btn {
-            background: #FF6900;
-            border: 2px solid #FFFFFF;
+            background: linear-gradient(135deg, #FF6900 0%, #cf5500 100%);
+            border: 1px solid #fff;
             color: white;
-            padding: 10px 20px;
+            padding: 15px 30px;
             font-family: 'Press Start 2P', cursive;
             font-size: 12px;
             cursor: pointer;
-            margin: 8px;
+            margin: 10px;
             text-transform: uppercase;
-            transition: all 0.2s;
-            user-select: none;
+            box-shadow: 0 4px 0 #8a3800;
+            transition: transform 0.1s;
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            background: #ff8c42;
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #8a3800;
         }
 
-        .educational-box {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #FF6900;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
+        .info-box {
+            background: #1e1e1e;
+            border-left: 4px solid #FF6900;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
             max-width: 90%;
             font-size: 12px;
-            line-height: 1.4;
+            line-height: 1.5;
+            max-height: 60vh;
+            overflow-y: auto;
         }
 
+        .highlight { color: #FF6900; font-weight: bold; }
+        
+        /* HUD */
         .hud {
             position: absolute;
             top: 10px;
@@ -98,128 +104,106 @@
             pointer-events: none;
             font-family: 'Press Start 2P', cursive;
             font-size: 10px;
-            text-shadow: 2px 2px 0 #000;
             z-index: 20;
+            text-shadow: 1px 1px 0 #000;
         }
-        
+
+        /* MOBILE CONTROLS */
         .mobile-controls {
             display: none;
-            position: fixed;
-            bottom: 10px;
+            position: absolute;
+            bottom: 20px;
             width: 100%;
             justify-content: space-between;
             padding: 0 20px;
             z-index: 100;
+            pointer-events: auto;
         }
-        @media (max-width: 768px) { .mobile-controls { display: flex; } }
+        @media (hover: none) and (pointer: coarse) { .mobile-controls { display: flex; } }
         
-        .d-pad {
-            display: grid;
-            grid-template-columns: 40px 40px 40px;
-            grid-template-rows: 40px 40px;
-            gap: 5px;
-        }
+        .d-pad { display: grid; grid-template-columns: 50px 50px 50px; gap: 5px; }
         .ctrl-btn {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid white;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 12px;
+            display: flex; justify-content center; align-items: center;
+            font-size: 20px;
             user-select: none;
         }
+        .ctrl-btn:active { background: rgba(255, 105, 0, 0.5); }
+
     </style>
 </head>
 <body>
 
-    <div class="text-center mb-2">
-        <h1 class="text-lg md:text-xl font-bold text-orange-500 tracking-wider">GEMINI IMAGE LAB</h1>
-        <p class="text-[10px] text-gray-400 font-mono">MODULE 1: PROMPT STRUCTURE</p>
+    <div class="text-center mb-1">
+        <h1 class="text-xl font-bold text-orange-500 tracking-widest font-mono">NANO BANANA PRO</h1>
+        <p class="text-[10px] text-gray-400">STUDIO QUALITY VISUALS</p>
     </div>
 
-    <div id="game-container">
+    <div id="game-wrapper">
         <canvas id="gameCanvas" width="600" height="800"></canvas>
         
         <!-- HUD -->
-        <div class="hud" id="hud">
-            <div>SCORE: <span id="score">0</span></div>
-            <div>LEVEL: <span id="level-display">1</span></div>
-            <div>BRUSHES: <span id="ammo">3</span></div>
+        <div class="hud">
+            <div id="level-display" class="text-yellow-400">DEMO 1</div>
+            <div>CREATIVITY: <span class="text-cyan-400">∞</span></div>
         </div>
 
-        <!-- Start Screen -->
+        <!-- START SCREEN -->
         <div id="start-screen" class="overlay">
-            <h1 class="text-2xl text-orange-500 mb-2 font-bold font-mono">VISUAL PROMPTING<br>SIMULATOR</h1>
+            <h1 class="text-2xl text-orange-500 mb-4 font-bold font-mono">GEMINI VISUAL LAB</h1>
             
-            <div class="educational-box text-left">
-                <p class="text-yellow-400 mb-2 font-bold">MISSION:</p>
-                <p class="text-gray-300 text-xs mb-2">Stack the 4 layers to build a perfect prompt:</p>
-                <ul class="text-xs text-white list-disc pl-4 space-y-1">
-                    <li><strong class="text-blue-300">SUBJECT:</strong> Main object</li>
-                    <li><strong class="text-green-300">CONTEXT:</strong> Location</li>
-                    <li><strong class="text-yellow-300">LIGHTING:</strong> Mood/Light</li>
-                    <li><strong class="text-red-300">STYLE:</strong> Art style</li>
+            <div class="info-box">
+                <h3 class="text-white font-bold mb-2">TURN YOUR VISIONS INTO STUDIO QUALITY DESIGNS</h3>
+                <p class="text-gray-300 mb-4">Welcome to the Nano Banana Pro simulation. You will experience 3 key capabilities:</p>
+                <ul class="space-y-3 list-disc pl-4 text-gray-300">
+                    <li><strong class="text-white">Unprecedented Creative Control:</strong> Refine specific parts, adjust lighting, and switch aspect ratios.</li>
+                    <li><strong class="text-white">Improved Text Rendering:</strong> Generate legible text, logos, and fonts directly on objects.</li>
+                    <li><strong class="text-white">Enhanced World Knowledge:</strong> Create culturally accurate content connected to Google Search.</li>
                 </ul>
             </div>
-
-            <div class="mb-4">
-                <p class="text-xs mb-2 text-gray-400">SELECT OUTPUT MODE:</p>
-                <button class="btn" onclick="startGame('classic')">PHOTOREALISTIC</button>
-                <button class="btn btn-green" onclick="startGame('veggie')">ILLUSTRATION</button>
-            </div>
             
-            <p class="mt-4 text-[10px] text-gray-500">Arrows to Move • SPACE to Splash Paint</p>
+            <button class="btn" onclick="startGame()">START DEMO</button>
+            <p class="text-[10px] text-gray-500 mt-4">Arrows to Move • Just TOUCH blocks to collect them</p>
         </div>
 
-        <!-- Game Over Screen -->
-        <div id="game-over-screen" class="overlay hidden">
-            <h1 class="text-red-500 text-xl mb-4 font-mono">PROMPT FAILED</h1>
-            <div class="educational-box">
-                <p class="text-sm">Your prompt was too vague!</p>
-                <p class="text-xs text-gray-400 mt-2">"Avoid generic terms. Be specific about lighting and style. Don't let the 'Blur' catch you!"</p>
-            </div>
-            <p class="text-xs mb-4">FINAL SCORE: <span id="final-score">0</span></p>
-            <button class="btn" onclick="restartGame()">RETRY LEVEL</button>
+        <!-- LEVEL INTRO -->
+        <div id="level-intro" class="overlay hidden">
+            <h1 class="text-xl text-yellow-400 mb-4 font-mono" id="intro-title">MODULE 1</h1>
+            <div class="info-box" id="intro-text"></div>
+            <button class="btn" onclick="startLevel()">BUILD PROMPT</button>
         </div>
-        
-        <!-- Level Complete Screen -->
-        <div id="level-complete-screen" class="overlay hidden">
-            <h1 class="text-green-400 text-xl mb-4 font-mono">IMAGE GENERATED!</h1>
-            
-            <div class="educational-box">
-                <p class="text-xs text-gray-400 mb-2">Prompt Compiled Successfully:</p>
-                <p class="text-xs italic text-white" id="success-msg">Loading...</p>
-                <div id="image-placeholder" class="mt-4 w-full h-24 bg-gray-800 border-2 border-white flex items-center justify-center text-gray-500 text-[10px]">
-                    [AI GENERATED VISUAL]
-                </div>
-            </div>
-            
-            <button class="btn" onclick="nextLevel()">NEXT PROMPT</button>
-        </div>
-    </div>
 
-    <!-- Mobile Controls -->
-    <div class="mobile-controls">
-        <div class="d-pad">
-            <div></div>
-            <div class="ctrl-btn" ontouchstart="simulateKey('ArrowUp', true)" ontouchend="simulateKey('ArrowUp', false)">⬆️</div>
-            <div></div>
-            <div class="ctrl-btn" ontouchstart="simulateKey('ArrowLeft', true)" ontouchend="simulateKey('ArrowLeft', false)">⬅️</div>
-            <div class="ctrl-btn" ontouchstart="simulateKey('ArrowDown', true)" ontouchend="simulateKey('ArrowDown', false)">⬇️</div>
-            <div class="ctrl-btn" ontouchstart="simulateKey('ArrowRight', true)" ontouchend="simulateKey('ArrowRight', false)">➡️</div>
+        <!-- VICTORY -->
+        <div id="victory-screen" class="overlay hidden">
+            <h1 class="text-green-400 text-xl mb-4 font-mono">RESULT GENERATED</h1>
+            <div class="info-box">
+                <p class="text-gray-400 text-[10px] mb-2 uppercase tracking-wide">Prompt Used:</p>
+                <p class="text-white italic text-xs bg-gray-800 p-3 border-l-2 border-orange-500 mb-4" id="final-prompt">...</p>
+                <p class="text-[10px] text-orange-400 font-bold" id="feature-highlight"></p>
+            </div>
+            <button class="btn" onclick="nextLevelAction()">NEXT DEMO</button>
         </div>
-        <div class="ctrl-btn" style="border-radius: 50%; width: 60px; height: 60px; background: rgba(0,255,255,0.3);" ontouchstart="simulateKey('Space', true)" ontouchend="simulateKey('Space', false)">🖌️</div>
+
+        <!-- MOBILE CONTROLS -->
+        <div class="mobile-controls">
+            <div class="d-pad">
+                <div></div>
+                <div class="ctrl-btn" ontouchstart="simKey('ArrowUp', true)" ontouchend="simKey('ArrowUp', false)">⬆️</div>
+                <div></div>
+                <div class="ctrl-btn" ontouchstart="simKey('ArrowLeft', true)" ontouchend="simKey('ArrowLeft', false)">⬅️</div>
+                <div class="ctrl-btn" ontouchstart="simKey('ArrowDown', true)" ontouchend="simKey('ArrowDown', false)">⬇️</div>
+                <div class="ctrl-btn" ontouchstart="simKey('ArrowRight', true)" ontouchend="simKey('ArrowRight', false)">➡️</div>
+            </div>
+            <div class="ctrl-btn" style="width:70px;height:70px;background:rgba(0,255,255,0.2);border-radius:50%" ontouchstart="simKey('Space', true)" ontouchend="simKey('Space', false)">🖌️</div>
+        </div>
     </div>
 
 <script>
 /**
- * GEMINI IMAGE CREATION LAB v1.2
- * Changelog:
- * - Fixed "Retry" button freezing (replaced location.reload with soft reset)
- * - Added Level Progression (Enemies get faster)
- * - Fixed Responsive Height for Laptops
+ * GEMINI VISUAL LAB v4.0 - Nano Banana Pro Edition
  */
 
 const canvas = document.getElementById('gameCanvas');
@@ -227,430 +211,343 @@ const ctx = canvas.getContext('2d');
 
 // --- ASSETS ---
 const zallyImg = new Image();
-zallyImg.src = 'zally_chef.png';
+zallyImg.src = 'zally_chef.png'; 
+
+// --- CONSTANTS ---
+const FLOORS = [150, 300, 450, 600]; 
+const LADDERS_X = [50, 200, 350, 500]; 
 
 // --- STATE ---
-let gameState = 'START'; 
-let score = 0;
-let ammo = 3; 
-let mode = 'classic';
+let gameState = 'MENU'; 
 let level = 1;
-let animationFrameId; // To track and cancel loop
+let score = 0;
+let animId;
 
-// Dimensions & Physics
-const FLOOR_HEIGHT = 150;
-const FLOOR_Y = [165, 315, 465, 615]; 
+// --- INPUT ---
+const keys = { ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false, Space:false };
 
-// Input
-const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, Space: false };
-
-// --- CLASSES ---
-
-class Player {
-    constructor() {
-        this.width = 30;
-        this.height = 30;
-        this.x = 300;
-        this.y = 585; // Start on bottom floor
-        this.speed = 3;
+// --- ENTITIES ---
+const player = {
+    x: 300, y: 570, w: 30, h: 30,
+    vx: 0, vy: 0, speed: 4,
+    onLadder: false,
+    facingRight: true,
+    
+    update: function() {
         this.vx = 0;
         this.vy = 0;
-        this.isClimbing = false;
-        this.facingRight = true;
-    }
+        
+        // 1. LADDER CHECK 
+        let nearLadder = false;
+        let ladderX = 0;
+        const activeLadders = [
+            {x: 50, y1: 150, y2: 300},  
+            {x: 500, y1: 150, y2: 300}, 
+            {x: 200, y1: 300, y2: 450}, 
+            {x: 350, y1: 450, y2: 600}  
+        ];
 
-    update(ladders) {
-        this.vx = 0;
-        this.vy = 0;
+        let centerX = this.x + this.w/2;
+        let bottomY = this.y + this.h;
 
-        // Ladder Logic
-        let onLadder = false;
-        let ladderCenter = 0;
-        let feetY = this.y + this.height;
-        let centerX = this.x + this.width / 2;
-
-        for (let ladder of ladders) {
-            if (centerX > ladder.x - 5 && centerX < ladder.x + ladder.width + 5) {
-                if (feetY >= ladder.y - 5 && feetY <= ladder.y + ladder.height + 5) {
-                    onLadder = true;
-                    ladderCenter = ladder.x + (ladder.width/2) - (this.width/2);
+        for (let l of activeLadders) {
+            if (Math.abs(centerX - (l.x + 15)) < 25) {
+                if (bottomY >= l.y1 - 5 && bottomY <= l.y2 + 5) {
+                    nearLadder = true;
+                    ladderX = l.x;
                 }
             }
         }
-        this.isClimbing = onLadder;
-
-        // Movement
+        
+        // 2. MOVEMENT
         if (keys.ArrowLeft) { this.vx = -this.speed; this.facingRight = false; }
         if (keys.ArrowRight) { this.vx = this.speed; this.facingRight = true; }
-
-        if (keys.ArrowUp && onLadder) {
-            this.vy = -this.speed;
-            if(Math.abs(this.x - ladderCenter) < 15) this.x = ladderCenter;
+        
+        if (nearLadder) {
+            if (keys.ArrowUp) { 
+                this.vy = -this.speed; 
+                this.x = lerp(this.x, ladderX, 0.2); 
+                this.onLadder = true;
+            }
+            else if (keys.ArrowDown) { 
+                this.vy = this.speed; 
+                this.x = lerp(this.x, ladderX, 0.2);
+                this.onLadder = true;
+            } else {
+                this.onLadder = false;
+            }
+        } else {
+            this.onLadder = false;
         }
-        if (keys.ArrowDown && onLadder) {
-            this.vy = this.speed;
-             if(Math.abs(this.x - ladderCenter) < 15) this.x = ladderCenter;
-        }
 
-        // Gravity / Floor Snap
-        if (!onLadder) {
+        // 3. GRAVITY 
+        if (!this.onLadder) {
             let onGround = false;
-            for (let fy of FLOOR_Y) {
-                if (Math.abs(feetY - fy) < 10) {
-                    this.y = fy - this.height;
+            for (let fy of FLOORS) {
+                if (Math.abs(bottomY - fy) < 15) {
+                    this.y = fy - this.h;
                     onGround = true;
                     break;
                 }
             }
-            if (!onGround) this.vy += 5;
+            if (!onGround) this.vy += 5; 
         }
 
         this.x += this.vx;
         this.y += this.vy;
 
-        // Boundaries
         if (this.x < 0) this.x = 0;
-        if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
-        if (this.y < 0) this.y = 0;
-        if (this.y + this.height > canvas.height) this.y = canvas.height - this.height;
-    }
+        if (this.x > 570) this.x = 570;
+        if (this.y > 770) this.y = 770; 
+    },
 
-    draw() {
+    draw: function() {
         ctx.save();
-        ctx.translate(this.x + this.width/2, this.y + this.height/2);
+        ctx.translate(this.x + 15, this.y + 15);
         if (!this.facingRight) ctx.scale(-1, 1);
-
-        if (zallyImg.complete && zallyImg.naturalWidth !== 0) {
-            ctx.drawImage(zallyImg, -24, -24, 48, 48);
+        
+        if (zallyImg.complete && zallyImg.naturalWidth > 0) {
+            ctx.drawImage(zallyImg, -20, -20, 40, 40);
         } else {
-            // Fallback
             ctx.fillStyle = '#FF6900';
-            ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = 'white'; ctx.fillRect(-10, -25, 20, 15); 
-            ctx.fillStyle = '#00FFFF'; ctx.beginPath(); ctx.arc(20, 0, 5, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.fillRect(-10,-20,20,10); 
         }
         ctx.restore();
     }
-}
+};
 
-class PromptLayer {
-    constructor(x, y, width, type, id) {
-        this.x = x;
-        this.y = y; 
-        this.originalY = y;
-        this.width = width;
-        this.height = 15;
-        this.type = type; 
-        this.id = id;
-        this.segments = [0, 0, 0, 0];
-        this.segmentWidth = width / 4;
-        this.isFalling = false;
-        this.fallSpeed = 0;
-        this.targetY = y;
-        this.isStacked = false;
-    }
-
-    update(player) {
-        if (this.isStacked) return;
-
-        if (this.isFalling) {
-            this.y += this.fallSpeed;
-            this.fallSpeed += 0.5;
-            if (this.y >= this.targetY) {
-                this.y = this.targetY;
-                this.isFalling = false;
-                this.fallSpeed = 0;
-                this.segments = [0, 0, 0, 0];
-                if (this.y > canvas.height - 100) {
-                    this.isStacked = true;
-                    checkLevelCompletion();
-                }
-            }
-            return;
-        }
-
-        // Stepping Logic
-        let pFeet = player.y + player.height;
-        let ingBottom = this.y + this.height; 
-        
-        if (pFeet >= this.y && pFeet <= ingBottom + 5) {
-            let relX = (player.x + player.width/2) - this.x;
-            if (relX > 0 && relX < this.width) {
-                let segIndex = Math.floor(relX / this.segmentWidth);
-                if (segIndex >= 0 && segIndex < 4) this.segments[segIndex] = 1;
-            }
-        }
-
-        if (this.segments.every(s => s === 1)) this.drop();
-    }
-
-    drop() {
-        this.isFalling = true;
-        this.fallSpeed = 2;
-        this.targetY = this.y + FLOOR_HEIGHT; 
-        score += 50;
-        triggerChainReaction(this);
-    }
-
-    draw() {
-        for (let i = 0; i < 4; i++) {
-            let segX = this.x + (i * this.segmentWidth);
-            let offset = this.segments[i] ? 5 : 0;
-            
-            let color, label;
-            if (this.type === 'bun-top') { color = '#EF4444'; label = "STYLE"; }
-            else if (this.type === 'garnish') { color = '#EAB308'; label = "LIGHT"; }
-            else if (this.type === 'meat') { color = mode === 'veggie' ? '#10B981' : '#3B82F6'; label = "SUBJECT"; }
-            else if (this.type === 'bun-bot') { color = '#F97316'; label = "CONTEXT"; }
-
-            ctx.fillStyle = color;
-            ctx.fillRect(segX, this.y + offset, this.segmentWidth - 2, this.height);
-            
-            if (i === 1) {
-                ctx.fillStyle = 'white';
-                ctx.font = '10px "Roboto Mono"';
-                ctx.fillText(label, segX - 10, this.y + offset + 11);
-            }
-        }
-    }
-}
-
-class Enemy {
-    constructor(x, y, type) {
-        this.x = x;
-        this.y = y;
-        this.type = type; 
-        // Level Progression: Enemies get 20% faster each level
-        this.speed = 1.0 + (level * 0.2); 
-        this.width = 30;
-        this.height = 30;
-        this.stunned = false;
-        this.stunTimer = 0;
-    }
-    
-    update(player) {
-        if (this.stunned) {
-            this.stunTimer--;
-            if (this.stunTimer <= 0) this.stunned = false;
-            return;
-        }
-        
-        // Simple pursuit
-        if (this.x < player.x) this.x += this.speed * 0.5;
-        else this.x -= this.speed * 0.5;
-        
-        if (Math.abs(this.x - player.x) < 50) {
-            if (this.y < player.y) this.y += this.speed * 0.5;
-            else this.y -= this.speed * 0.5;
-        }
-
-        // Collision
-        if (this.x < player.x + player.width &&
-            this.x + this.width > player.x &&
-            this.y < player.y + player.height &&
-            this.y + this.height > player.y) {
-            gameOver();
-        }
-    }
-
-    draw() {
-        ctx.save();
-        if (this.type === 'blur') {
-            ctx.fillStyle = 'rgba(150, 150, 150, 0.8)';
-            ctx.filter = this.stunned ? 'none' : 'blur(4px)';
-        } else {
-            ctx.fillStyle = '#ff00ff'; 
-            if (Math.random() > 0.5) ctx.fillStyle = '#00ffff';
-        }
-        
-        if(this.stunned) ctx.fillStyle = 'blue';
-
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-        
-        // Label
-        ctx.fillStyle = 'white';
-        ctx.font = '8px monospace';
-        ctx.filter = 'none';
-        ctx.fillText(this.type === 'blur' ? "VAGUE" : "NOISE", this.x, this.y - 5);
-        ctx.restore();
-    }
-}
-
-// --- GAME OBJECTS ---
-let player;
 let layers = [];
-let ladders = [];
 let enemies = [];
 
-// --- INIT ---
+// --- GENERATORS ---
 
-function initGame() {
-    player = new Player();
+function createLevel(lvl) {
     layers = [];
-    ladders = [];
     enemies = [];
-    // Don't reset score if leveling up, only on restart
+    player.x = 300; player.y = 570; 
     
-    const colX = [100, 250, 400];
-    const ingY = [165-15, 315-15, 465-15, 615-15];
+    // Updated Levels based on Workshop Data
 
-    // Layers
-    for(let c=0; c<3; c++) {
-        layers.push(new PromptLayer(colX[c], ingY[0], 120, 'bun-top', `t-${c}`)); 
-        layers.push(new PromptLayer(colX[c], ingY[1], 120, 'garnish', `g-${c}`)); 
-        layers.push(new PromptLayer(colX[c], ingY[2], 120, 'meat', `m-${c}`));    
-        layers.push(new PromptLayer(colX[c], ingY[3], 120, 'bun-bot', `b-${c}`)); 
+    if (lvl === 1) {
+        // CASE 1: INFOGRAPHIC (Style & Diorama)
+        document.getElementById('level-display').innerText = "DEMO 1: STYLIZATION";
+        layers.push({x: 50, y: 600-15, w: 120, type: 'INFOGRAPHIC', color: '#3B82F6', collected: false});
+        layers.push({x: 200, y: 300-15, w: 120, type: 'ARCHITECTURAL', color: '#10B981', collected: false});
+        layers.push({x: 450, y: 150-15, w: 120, type: 'DIORAMAS', color: '#F59E0B', collected: false});
+        // No enemies for first level
+    } 
+    else if (lvl === 2) {
+        // CASE 2: BOTTLE LABEL (Text Rendering)
+        document.getElementById('level-display').innerText = "DEMO 2: TEXT RENDERING";
+        layers.push({x: 50, y: 450-15, w: 120, type: 'BOTTLE WRAP', color: '#8B5CF6', collected: false});
+        layers.push({x: 450, y: 600-15, w: 120, type: 'MINIMAL LABEL', color: '#EC4899', collected: false});
+        layers.push({x: 250, y: 150-15, w: 150, type: '"BEA\'S HOT SAUCE"', color: '#EF4444', collected: false});
+        
+        enemies.push({x: 50, y: 300-20, type: 'BAD FONT', speed: 1.5, stunned: 0});
     }
+    else {
+        // CASE 3: MEXICAN FOOD (World Knowledge)
+        document.getElementById('level-display').innerText = "DEMO 3: WORLD KNOWLEDGE";
+        layers.push({x: 100, y: 150-15, w: 120, type: 'FLAT LAY', color: '#F59E0B', collected: false});
+        layers.push({x: 400, y: 300-15, w: 120, type: '8 DISHES', color: '#10B981', collected: false});
+        layers.push({x: 50, y: 450-15, w: 120, type: 'ANNOTATIONS', color: '#3B82F6', collected: false});
+        layers.push({x: 450, y: 600-15, w: 120, type: 'SPANISH', color: '#EF4444', collected: false});
 
-    // Ladders
-    ladders.push({x: 50, y: 165, width: 30, height: 150}); 
-    ladders.push({x: 520, y: 165, width: 30, height: 150});
-    ladders.push({x: 200, y: 315, width: 30, height: 150}); 
-    ladders.push({x: 350, y: 465, width: 30, height: 150}); 
-
-    // Enemies (Quantity and Speed scale with Level?)
-    // For now just speed scales in the Class.
-    enemies.push(new Enemy(50, 165-30, 'blur')); 
-    enemies.push(new Enemy(500, 315-30, 'noise')); 
-    // Add extra enemy on Level 2+
-    if (level > 1) {
-        enemies.push(new Enemy(300, 465-30, 'blur'));
+        enemies.push({x: 300, y: 450-20, type: 'HALLUCINATION', speed: 2, stunned: 0});
     }
-
-    document.getElementById('hud').classList.remove('hidden');
-    document.getElementById('level-display').innerText = level;
-    document.getElementById('ammo').innerText = ammo;
 }
 
-// --- LOOP ---
+// --- CORE LOOPS ---
 
-function gameLoop() {
-    if (gameState !== 'PLAYING') return;
+function update() {
+    player.update();
+    
+    let allCollected = true;
+    for (let l of layers) {
+        if (l.collected) continue;
+        allCollected = false;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw Floors
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    FLOOR_Y.forEach(y => {
-        ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
-    });
-    ctx.stroke();
-
-    // Draw Ladders
-    ctx.fillStyle = '#444';
-    for (let l of ladders) {
-        for(let y=l.y; y<l.y+l.height; y+=20) ctx.fillRect(l.x, y, l.width, 4);
-        ctx.strokeStyle = '#444'; ctx.strokeRect(l.x, l.y, l.width, l.height);
-    }
-
-    layers.forEach(l => { l.update(player); l.draw(); });
-    player.update(ladders);
-    player.draw();
-    enemies.forEach(e => { e.update(player); e.draw(); });
-
-    document.getElementById('score').innerText = score;
-    document.getElementById('ammo').innerText = ammo;
-
-    animationFrameId = requestAnimationFrame(gameLoop);
-}
-
-// --- LOGIC ---
-
-function triggerChainReaction(fallingLayer) {
-    layers.forEach(target => {
-        if (target === fallingLayer) return;
-        if (Math.abs(target.x - fallingLayer.x) < 10 && 
-            target.y > fallingLayer.y && 
-            target.y < fallingLayer.targetY + 10 && 
-            !target.isFalling && !target.isStacked
-        ) {
-            target.drop();
+        // Collision
+        if (player.x < l.x + l.w &&
+            player.x + player.w > l.x &&
+            player.y < l.y + 15 &&
+            player.y + player.h > l.y) {
+            
+            l.collected = true;
+            score += 100;
         }
-    });
-}
+    }
+    
+    if (allCollected) {
+        gameState = 'VICTORY';
+        showVictory();
+        return;
+    }
 
-function checkLevelCompletion() {
-    const stacked = layers.filter(i => i.isStacked).length;
-    if (stacked >= layers.length) levelComplete();
-}
-
-// --- CONTROLS / UI ---
-
-function startGame(selectedMode) {
-    // Standard Start
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    mode = selectedMode;
-    gameState = 'PLAYING';
-    document.getElementById('start-screen').classList.add('hidden');
-    document.getElementById('game-over-screen').classList.add('hidden');
-    document.getElementById('level-complete-screen').classList.add('hidden');
-    initGame();
-    gameLoop();
-}
-
-function restartGame() {
-    // Soft Reset (Called by Retry Button)
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    score = 0;
-    level = 1;
-    ammo = 3;
-    gameState = 'PLAYING';
-    document.getElementById('game-over-screen').classList.add('hidden');
-    initGame();
-    gameLoop();
-}
-
-function nextLevel() {
-    // Called when winning a level
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    level++;
-    ammo += 1; // Reward
-    gameState = 'PLAYING';
-    document.getElementById('level-complete-screen').classList.add('hidden');
-    initGame(); // Will use new level var to increase difficulty
-    gameLoop();
-}
-
-function gameOver() {
-    gameState = 'GAMEOVER';
-    document.getElementById('final-score').innerText = score;
-    document.getElementById('game-over-screen').classList.remove('hidden');
-    // Loop stops automatically because check at start of gameLoop
-}
-
-function levelComplete() {
-    gameState = 'LEVEL_COMPLETE';
-    let promptResult = mode === 'classic' 
-        ? '"A high-end sneaker (Subject) on a wet city street (Context) with neon blue lighting (Light), photorealistic 8k style (Style)."'
-        : '"A cute mascot (Subject) in a fantasy kitchen (Context) with soft warm lighting (Light), in 3D illustration style (Style)."';
-    document.getElementById('success-msg').innerText = promptResult;
-    document.getElementById('level-complete-screen').classList.remove('hidden');
-}
-
-window.addEventListener('keydown', (e) => {
-    if(e.code in keys) keys[e.code] = true;
-    if(e.code === 'Space' && gameState === 'PLAYING') useBrush();
-});
-window.addEventListener('keyup', (e) => { if(e.code in keys) keys[e.code] = false; });
-
-function simulateKey(code, state) {
-    keys[code] = state;
-    if (code === 'Space' && state === true && gameState === 'PLAYING') useBrush();
-}
-
-function useBrush() {
-    if (ammo > 0) {
-        ammo--;
-        score += 100;
-        enemies.forEach(e => { e.stunned = true; e.stunTimer = 200; });
-        const flash = document.createElement('div');
-        flash.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.2);pointer-events:none;';
-        document.getElementById('game-container').appendChild(flash);
-        setTimeout(() => flash.remove(), 100);
+    for (let e of enemies) {
+        if (e.stunned > 0) { e.stunned--; continue; }
+        if (e.x < player.x) e.x += e.speed; else e.x -= e.speed;
+        
+        if (Math.abs(e.x - player.x) < 20 && Math.abs(e.y - player.y) < 20) {
+            if (player.x > e.x) player.x += 50; else player.x -= 50;
+        }
+    }
+    
+    if (keys.Space) {
+        for(let e of enemies) e.stunned = 120;
     }
 }
+
+function draw() {
+    // BG
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, 600, 800);
+    
+    // Floors
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    for(let y of FLOORS) {
+        ctx.moveTo(0, y); ctx.lineTo(600, y);
+    }
+    ctx.stroke();
+    
+    // Ladders
+    ctx.fillStyle = '#333';
+    const drawLad = (x, y1, y2) => {
+        for(let y=y1; y<y2; y+=15) ctx.fillRect(x, y, 30, 4);
+        ctx.strokeStyle='#555'; ctx.strokeRect(x,y1,30, y2-y1);
+    };
+    drawLad(50, 150, 300);
+    drawLad(500, 150, 300);
+    drawLad(200, 300, 450);
+    drawLad(350, 450, 600);
+    
+    // Layers
+    for (let l of layers) {
+        if (l.collected) continue;
+        ctx.fillStyle = l.color;
+        ctx.fillRect(l.x, l.y, l.w, 15);
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px monospace';
+        ctx.fillText(l.type, l.x + 5, l.y - 5);
+    }
+    
+    // Enemies
+    for (let e of enemies) {
+        ctx.save();
+        ctx.translate(e.x, e.y);
+        ctx.fillStyle = e.stunned ? '#00f' : '#f0f';
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath(); ctx.arc(15,15,15,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = '10px monospace';
+        ctx.fillText(e.type, 0, -5);
+        ctx.restore();
+    }
+    
+    player.draw();
+    
+    // Status Bar
+    ctx.fillStyle = '#222';
+    ctx.fillRect(0, 750, 600, 50);
+    ctx.fillStyle = '#fff';
+    ctx.font = '10px "Roboto Mono"';
+    ctx.fillText("COLLECTED: " + layers.filter(l=>l.collected).map(l=>l.type).join(" + "), 10, 780);
+}
+
+function loop() {
+    if (gameState === 'PLAYING') {
+        update();
+        draw();
+        animId = requestAnimationFrame(loop);
+    }
+}
+
+// --- GAME FLOW ---
+
+function startGame() {
+    document.getElementById('start-screen').classList.add('hidden');
+    level = 1;
+    showIntro();
+}
+
+function showIntro() {
+    gameState = 'INTRO';
+    const title = document.getElementById('intro-title');
+    const text = document.getElementById('intro-text');
+    
+    if (level === 1) {
+        title.innerText = "DEMO 1: EDITORIAL STYLE";
+        text.innerHTML = `
+            <p class="highlight mb-2">GOAL: ARCHITECTURAL INFOGRAPHIC</p>
+            <p class="text-gray-300">Create a sleek, modern infographic about modern architecture styles.</p>
+            <p class="text-white mt-4"><strong>New Feature:</strong> Illustration Style & Small Dioramas.</p>
+            <p class="text-xs text-gray-400 mt-2">COLLECT: 'INFOGRAPHIC' + 'DIORAMAS' + 'ARCHITECTURAL'</p>
+        `;
+    } else if (level === 2) {
+        title.innerText = "DEMO 2: TEXT RENDERING";
+        text.innerHTML = `
+            <p class="highlight mb-2">GOAL: HOT SAUCE LABEL</p>
+            <p class="text-gray-300">Create a minimal label wrapped around a bottle with specific text.</p>
+            <p class="text-white mt-4"><strong>New Feature:</strong> "Bea's Hot Sauce" text rendering directly on the image.</p>
+            <p class="text-xs text-gray-400 mt-2">COLLECT: 'BOTTLE' + 'LABEL' + 'LOGO TEXT'</p>
+        `;
+    } else {
+        title.innerText = "DEMO 3: WORLD KNOWLEDGE";
+        text.innerHTML = `
+            <p class="highlight mb-2">GOAL: CULTURAL DISHES</p>
+            <p class="text-gray-300">Create a table with 8 traditional Mexican dishes, annotated in Spanish.</p>
+            <p class="text-white mt-4"><strong>New Feature:</strong> Connecting to Google Search for cultural accuracy.</p>
+            <p class="text-xs text-gray-400 mt-2">COLLECT: 'DISHES' + 'ANNOTATIONS' + 'SPANISH'</p>
+        `;
+    }
+    
+    document.getElementById('level-intro').classList.remove('hidden');
+}
+
+function startLevel() {
+    document.getElementById('level-intro').classList.add('hidden');
+    createLevel(level);
+    gameState = 'PLAYING';
+    loop();
+}
+
+function showVictory() {
+    cancelAnimationFrame(animId);
+    const promptBox = document.getElementById('final-prompt');
+    const featBox = document.getElementById('feature-highlight');
+    
+    if (level === 1) {
+        promptBox.innerText = "\"Make a sleek, modern, editorial infographic about the architectural styles of modern architecture, with small architectural dioramas representing each style under it. Make it illustration style.\"";
+        featBox.innerText = "✓ Style Consistency ✓ Diorama Generation";
+    }
+    else if (level === 2) {
+        promptBox.innerText = "\"Create a minimal, elegant label and wrap it around the bottle. Add the logo 'Bea's Hot Sauce' to the label, do not add any extra text. Keep the entire bottle fully in frame.\"";
+        featBox.innerText = "✓ Text Rendering ✓ Object Wrapping";
+    }
+    else {
+        promptBox.innerText = "\"Create a single table with 8 traditional mexican dishes, with the focal point right above it. Annotate the image with the name of each dish in spanish. Maintain all the details.\"";
+        featBox.innerText = "✓ World Knowledge ✓ Multilingual Text";
+    }
+    
+    document.getElementById('victory-screen').classList.remove('hidden');
+}
+
+function nextLevelAction() {
+    document.getElementById('victory-screen').classList.add('hidden');
+    level++;
+    if (level > 3) level = 1; 
+    showIntro();
+}
+
+// --- UTILS ---
+function lerp(start, end, amt) { return (1-amt)*start + amt*end; }
+function simKey(k, s) { keys[k] = s; if(s && k==='Space') { for(let e of enemies) e.stunned = 120; } }
+
+// Event Listeners
+window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.code)) keys[e.code] = true; });
+window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.code)) keys[e.code] = false; });
 
 </script>
 </body>
