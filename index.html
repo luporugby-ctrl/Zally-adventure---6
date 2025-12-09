@@ -188,6 +188,25 @@
             <button class="btn" onclick="nextLevelAction()">NEXT MODULE</button>
         </div>
 
+        <!-- FINAL RESUME SCREEN -->
+        <div id="final-screen" class="overlay hidden">
+            <h1 class="text-yellow-400 text-2xl mb-4 font-mono">COURSE COMPLETED!</h1>
+            <div class="info-box" style="text-align: center;">
+                <p class="text-white mb-4">You have successfully mastered the <strong>S.L.I.C.E.</strong> method and explored Nano Banana Pro capabilities.</p>
+                
+                <div class="bg-gray-800 p-4 rounded-lg mb-4 text-left text-xs">
+                    <p>✅ <strong>Structure:</strong> Subject + Context + Style</p>
+                    <p>✅ <strong>Control:</strong> Infographics & Dioramas</p>
+                    <p>✅ <strong>Text:</strong> Precise Rendering</p>
+                    <p>✅ <strong>Knowledge:</strong> Cultural Accuracy</p>
+                </div>
+
+                <!-- THE PUN -->
+                <p class="text-orange-500 font-bold text-lg animate-pulse mt-6">"Don't let your ideas slip!<br>Keep your prompts a-peel-ing<br>with Nano Banana!!" 🍌</p>
+            </div>
+            <button class="btn" onclick="location.reload()">RESTART LAB</button>
+        </div>
+
         <!-- MOBILE CONTROLS -->
         <div class="mobile-controls">
             <div class="d-pad">
@@ -204,7 +223,7 @@
 
 <script>
 /**
- * GEMINI VISUAL LAB v7.0 - 5 Levels (Iteration added)
+ * GEMINI VISUAL LAB v9.0 - Final English Edition
  */
 
 const canvas = document.getElementById('gameCanvas');
@@ -325,7 +344,7 @@ function createLevel(lvl) {
     enemies = [];
     player.x = 300; player.y = 570; 
     
-    // LEVEL 1: S.L.I.C.E. METHOD (The Basics)
+    // LEVEL 1: S.L.I.C.E. METHOD (The Basics - Rustic/Cozy Style)
     if (lvl === 1) {
         document.getElementById('level-display').innerText = "LESSON 1: S.L.I.C.E.";
         layers.push({x: 50, y: 600-15, w: 100, type: 'SUBJECT', color: '#3B82F6', collected: false, letter:'S'});
@@ -334,10 +353,10 @@ function createLevel(lvl) {
         layers.push({x: 50, y: 150-15, w: 100, type: 'CAMERA', color: '#8B5CF6', collected: false, letter:'C'});
         layers.push({x: 450, y: 150-15, w: 100, type: 'EXTRAS', color: '#EF4444', collected: false, letter:'E'});
     } 
-    // LEVEL 2: CREATIVE CONTROL (Architecture Infographic)
+    // LEVEL 2: CREATIVE CONTROL (Architecture Infographic - SINGLE)
     else if (lvl === 2) {
         document.getElementById('level-display').innerText = "LESSON 2: CREATIVE CTRL";
-        layers.push({x: 50, y: 450-15, w: 130, type: 'INFOGRAPHIC', color: '#8B5CF6', collected: false});
+        layers.push({x: 50, y: 450-15, w: 130, type: 'SINGLE INFO', color: '#8B5CF6', collected: false});
         layers.push({x: 450, y: 600-15, w: 120, type: 'DIORAMAS', color: '#EC4899', collected: false});
         layers.push({x: 250, y: 150-15, w: 150, type: 'ILLUSTRATION', color: '#EF4444', collected: false});
         
@@ -352,17 +371,17 @@ function createLevel(lvl) {
 
         enemies.push({x: 300, y: 450-20, type: 'TYPO', speed: 2, stunned: 0});
     }
-    // LEVEL 4: WORLD KNOWLEDGE (Mexican Food)
+    // LEVEL 4: WORLD KNOWLEDGE (Italian Food)
     else if (lvl === 4) {
         document.getElementById('level-display').innerText = "LESSON 4: KNOWLEDGE";
         layers.push({x: 50, y: 600-15, w: 100, type: 'FLAT LAY', color: '#3B82F6', collected: false});
         layers.push({x: 450, y: 450-15, w: 120, type: '8 DISHES', color: '#10B981', collected: false});
         layers.push({x: 200, y: 300-15, w: 130, type: 'ANNOTATIONS', color: '#FBBF24', collected: false});
-        layers.push({x: 50, y: 150-15, w: 120, type: 'SPANISH', color: '#8B5CF6', collected: false});
+        layers.push({x: 50, y: 150-15, w: 120, type: 'ITALIAN', color: '#8B5CF6', collected: false});
         
         enemies.push({x: 500, y: 150-20, type: 'ERROR', speed: 2.2, stunned: 0});
     }
-    // LEVEL 5: ITERATION (Refine the Mexican Food Image)
+    // LEVEL 5: ITERATION (Refine the Italian Food Image)
     else if (lvl === 5) {
         document.getElementById('level-display').innerText = "LESSON 5: ITERATION";
         layers.push({x: 100, y: 150-15, w: 120, type: 'TRANSLATE', color: '#3B82F6', collected: false});
@@ -526,8 +545,8 @@ function showIntro() {
         text.innerHTML = `
             <p class="highlight mb-2">GOAL: ARCHITECTURAL INFOGRAPHIC</p>
             <p class="text-gray-300">Nano Banana Pro allows precise style control.</p>
-            <p class="text-white mt-4"><strong>Task:</strong> Create a sleek, modern infographic.</p>
-            <p class="text-xs text-gray-400 mt-2">COLLECT: 'INFOGRAPHIC' + 'DIORAMAS' + 'ILLUSTRATION'</p>
+            <p class="text-white mt-4"><strong>Task:</strong> Create a single, sleek infographic.</p>
+            <p class="text-xs text-gray-400 mt-2">COLLECT: 'SINGLE INFO' + 'DIORAMAS' + 'ILLUSTRATION'</p>
         `;
     } else if (level === 3) {
         title.innerText = "LESSON 3: TEXT RENDERING";
@@ -540,17 +559,17 @@ function showIntro() {
     } else if (level === 4) {
         title.innerText = "LESSON 4: WORLD KNOWLEDGE";
         text.innerHTML = `
-            <p class="highlight mb-2">GOAL: MEXICAN FEAST</p>
+            <p class="highlight mb-2">GOAL: ITALIAN FEAST</p>
             <p class="text-gray-300">Connect to Google Search for cultural accuracy.</p>
-            <p class="text-white mt-4"><strong>Task:</strong> 8 Traditional Dishes annotated in Spanish.</p>
-            <p class="text-xs text-gray-400 mt-2">COLLECT: 'DISHES' + 'ANNOTATIONS' + 'SPANISH'</p>
+            <p class="text-white mt-4"><strong>Task:</strong> 8 Traditional Italian Dishes.</p>
+            <p class="text-xs text-gray-400 mt-2">COLLECT: 'DISHES' + 'ANNOTATIONS' + 'ITALIAN'</p>
         `;
     } else if (level === 5) {
         title.innerText = "LESSON 5: ITERATION";
         text.innerHTML = `
             <p class="highlight mb-2">GOAL: REFINE & TRANSLATE</p>
             <p class="text-gray-300">Gemini isn't just a creator, it's a collaborator.</p>
-            <p class="text-white mt-4"><strong>Task:</strong> Modify the previous image with a follow-up prompt.</p>
+            <p class="text-white mt-4"><strong>Task:</strong> Add phonetic descriptions to the Italian dishes.</p>
             <p class="text-xs text-gray-400 mt-2">COLLECT: 'TRANSLATE' + 'PHONETIC' + 'DETAILS'</p>
         `;
     }
@@ -571,23 +590,23 @@ function showVictory() {
     const featBox = document.getElementById('feature-highlight');
     
     if (level === 1) {
-        promptBox.innerText = "\"A futuristic chef (S) in a neon kitchen (L) with soft rim lighting (I), wide angle shot 8k (C), holding a glowing whisk (E).\"";
+        promptBox.innerText = "\"A cute mascot chef (S) in a rustic kitchen (L) with warm morning light (I), close-up macro shot 4k (C), holding a fresh tomato (E).\"";
         featBox.innerText = "✓ S.L.I.C.E. Method Verified";
     }
     else if (level === 2) {
-        promptBox.innerText = "\"Make a sleek, modern, editorial infographic about architecture, with small dioramas representing each style. Illustration style.\"";
-        featBox.innerText = "✓ Style Control ✓ Diorama Generation";
+        promptBox.innerText = "\"Create a SINGLE sleek, modern, editorial infographic about architecture, with small dioramas representing each style. Illustration style.\"";
+        featBox.innerText = "✓ Style Control ✓ Single Layout";
     }
     else if (level === 3) {
         promptBox.innerText = "\"Create a minimal label wrapped around a bottle. Add the logo '[Your Name]'s Sauce' to the label, do not add any extra text.\"";
         featBox.innerText = "✓ Text Rendering ✓ Object Wrapping";
     }
     else if (level === 4) {
-        promptBox.innerText = "\"Create a table with 8 traditional mexican dishes. Annotate the image with the name of each dish in spanish.\"";
-        featBox.innerText = "✓ World Knowledge ✓ Multilingual Text";
+        promptBox.innerText = "\"Create a table with 8 traditional Italian dishes. Annotate the image with the name of each dish in Italian.\"";
+        featBox.innerText = "✓ World Knowledge ✓ Cultural Accuracy";
     }
     else {
-        promptBox.innerText = "\"Translate to english with a phonetic description in spanish for every dish name, maintain all the details.\"";
+        promptBox.innerText = "\"Translate the dish names to English and add a phonetic description for every dish name, maintain all the details.\"";
         featBox.innerText = "✓ Iteration ✓ Multimodal Follow-up";
     }
     
@@ -597,8 +616,12 @@ function showVictory() {
 function nextLevelAction() {
     document.getElementById('victory-screen').classList.add('hidden');
     level++;
-    if (level > 5) level = 1; 
-    showIntro();
+    if (level > 5) {
+        // Show Final Screen
+        document.getElementById('final-screen').classList.remove('hidden');
+    } else {
+        showIntro();
+    }
 }
 
 // --- UTILS ---
