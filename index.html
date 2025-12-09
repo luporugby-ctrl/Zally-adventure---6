@@ -204,7 +204,7 @@
 
 <script>
 /**
- * GEMINI VISUAL LAB v6.1 - Customized Name Edition
+ * GEMINI VISUAL LAB v7.0 - 5 Levels (Iteration added)
  */
 
 const canvas = document.getElementById('gameCanvas');
@@ -348,7 +348,6 @@ function createLevel(lvl) {
         document.getElementById('level-display').innerText = "LESSON 3: TEXT";
         layers.push({x: 100, y: 150-15, w: 120, type: 'BOTTLE', color: '#F59E0B', collected: false});
         layers.push({x: 400, y: 300-15, w: 120, type: 'WRAP LBL', color: '#10B981', collected: false});
-        // Changed to custom name placeholder
         layers.push({x: 50, y: 450-15, w: 130, type: '[YOUR NAME]', color: '#EF4444', collected: false});
 
         enemies.push({x: 300, y: 450-20, type: 'TYPO', speed: 2, stunned: 0});
@@ -362,6 +361,16 @@ function createLevel(lvl) {
         layers.push({x: 50, y: 150-15, w: 120, type: 'SPANISH', color: '#8B5CF6', collected: false});
         
         enemies.push({x: 500, y: 150-20, type: 'ERROR', speed: 2.2, stunned: 0});
+    }
+    // LEVEL 5: ITERATION (Refine the Mexican Food Image)
+    else if (lvl === 5) {
+        document.getElementById('level-display').innerText = "LESSON 5: ITERATION";
+        layers.push({x: 100, y: 150-15, w: 120, type: 'TRANSLATE', color: '#3B82F6', collected: false});
+        layers.push({x: 400, y: 300-15, w: 120, type: 'PHONETIC', color: '#10B981', collected: false});
+        layers.push({x: 50, y: 450-15, w: 100, type: 'ENGLISH', color: '#FBBF24', collected: false});
+        layers.push({x: 450, y: 600-15, w: 120, type: 'DETAILS', color: '#EF4444', collected: false});
+        
+        enemies.push({x: 300, y: 300-20, type: 'FORGET', speed: 2.5, stunned: 0});
     }
 }
 
@@ -536,6 +545,14 @@ function showIntro() {
             <p class="text-white mt-4"><strong>Task:</strong> 8 Traditional Dishes annotated in Spanish.</p>
             <p class="text-xs text-gray-400 mt-2">COLLECT: 'DISHES' + 'ANNOTATIONS' + 'SPANISH'</p>
         `;
+    } else if (level === 5) {
+        title.innerText = "LESSON 5: ITERATION";
+        text.innerHTML = `
+            <p class="highlight mb-2">GOAL: REFINE & TRANSLATE</p>
+            <p class="text-gray-300">Gemini isn't just a creator, it's a collaborator.</p>
+            <p class="text-white mt-4"><strong>Task:</strong> Modify the previous image with a follow-up prompt.</p>
+            <p class="text-xs text-gray-400 mt-2">COLLECT: 'TRANSLATE' + 'PHONETIC' + 'DETAILS'</p>
+        `;
     }
     
     document.getElementById('level-intro').classList.remove('hidden');
@@ -565,9 +582,13 @@ function showVictory() {
         promptBox.innerText = "\"Create a minimal label wrapped around a bottle. Add the logo '[Your Name]'s Sauce' to the label, do not add any extra text.\"";
         featBox.innerText = "✓ Text Rendering ✓ Object Wrapping";
     }
-    else {
+    else if (level === 4) {
         promptBox.innerText = "\"Create a table with 8 traditional mexican dishes. Annotate the image with the name of each dish in spanish.\"";
         featBox.innerText = "✓ World Knowledge ✓ Multilingual Text";
+    }
+    else {
+        promptBox.innerText = "\"Translate to english with a phonetic description in spanish for every dish name, maintain all the details.\"";
+        featBox.innerText = "✓ Iteration ✓ Multimodal Follow-up";
     }
     
     document.getElementById('victory-screen').classList.remove('hidden');
@@ -576,7 +597,7 @@ function showVictory() {
 function nextLevelAction() {
     document.getElementById('victory-screen').classList.add('hidden');
     level++;
-    if (level > 4) level = 1; 
+    if (level > 5) level = 1; 
     showIntro();
 }
 
