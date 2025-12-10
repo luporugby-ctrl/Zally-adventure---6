@@ -223,7 +223,7 @@
 
 <script>
 /**
- * GEMINI VISUAL LAB v9.0 - Final English Edition
+ * GEMINI VISUAL LAB v9.1 - Updated Fashion Prompt
  */
 
 const canvas = document.getElementById('gameCanvas');
@@ -353,7 +353,7 @@ function createLevel(lvl) {
         layers.push({x: 50, y: 150-15, w: 100, type: 'CAMERA', color: '#8B5CF6', collected: false, letter:'C'});
         layers.push({x: 450, y: 150-15, w: 100, type: 'EXTRAS', color: '#EF4444', collected: false, letter:'E'});
     } 
-    // LEVEL 2: CREATIVE CONTROL (Architecture Infographic - SINGLE)
+    // LEVEL 2: CREATIVE CONTROL (Fashion History Infographic)
     else if (lvl === 2) {
         document.getElementById('level-display').innerText = "LESSON 2: CREATIVE CTRL";
         layers.push({x: 50, y: 450-15, w: 130, type: 'SINGLE INFO', color: '#8B5CF6', collected: false});
@@ -543,7 +543,7 @@ function showIntro() {
     } else if (level === 2) {
         title.innerText = "LESSON 2: CREATIVE CONTROL";
         text.innerHTML = `
-            <p class="highlight mb-2">GOAL: ARCHITECTURAL INFOGRAPHIC</p>
+            <p class="highlight mb-2">GOAL: FASHION HISTORY INFOGRAPHIC</p>
             <p class="text-gray-300">Nano Banana Pro allows precise style control.</p>
             <p class="text-white mt-4"><strong>Task:</strong> Create a single, sleek infographic.</p>
             <p class="text-xs text-gray-400 mt-2">COLLECT: 'SINGLE INFO' + 'DIORAMAS' + 'ILLUSTRATION'</p>
@@ -594,7 +594,7 @@ function showVictory() {
         featBox.innerText = "✓ S.L.I.C.E. Method Verified";
     }
     else if (level === 2) {
-        promptBox.innerText = "\"Create a SINGLE sleek, modern, editorial infographic about architecture, with small dioramas representing each style. Illustration style.\"";
+        promptBox.innerText = "\"Create a SINGLE sleek, modern, editorial infographic about fashion history, with small 3D dioramas representing different fashion eras. Each diorama features a mannequin in a specific outfit (e.g., Roaring 20s, 80s Power Suit, Streetwear). Clean layout, neutral background. High-end illustration style.\"";
         featBox.innerText = "✓ Style Control ✓ Single Layout";
     }
     else if (level === 3) {
